@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -45,6 +46,29 @@ func Load() (*Config, error) {
 	// Load .env file if it exists
 	_ = godotenv.Load()
 
+	supabaseURL := getEnv("SUPABASE_URL", "")
+	supabaseKey := getEnv("SUPABASE_ANON_KEY", "")
+	supabaseJWT := getEnv("SUPABASE_JWT_SECRET", "")
+	dbPassword := getEnv("DB_PASSWORD", "")
+	jwtSecret := getEnv("JWT_SECRET", "")
+
+	// Validate required environment variables
+	if supabaseURL == "" {
+		return nil, fmt.Errorf("SUPABASE_URL environment variable is required")
+	}
+	if supabaseKey == "" {
+		return nil, fmt.Errorf("SUPABASE_ANON_KEY environment variable is required")
+	}
+	if supabaseJWT == "" {
+		return nil, fmt.Errorf("SUPABASE_JWT_SECRET environment variable is required")
+	}
+	if dbPassword == "" {
+		return nil, fmt.Errorf("DB_PASSWORD environment variable is required")
+	}
+	if jwtSecret == "" {
+		return nil, fmt.Errorf("JWT_SECRET environment variable is required")
+	}
+
 	cfg := &Config{
 		Server: ServerConfig{
 			Port:            getEnv("PORT", "8080"),
@@ -54,12 +78,12 @@ func Load() (*Config, error) {
 			Environment:     getEnv("ENVIRONMENT", "development"),
 		},
 		Supabase: SupabaseConfig{
-			URL:       getEnv("SUPABASE_URL", ""),
-			Key:       getEnv("SUPABASE_ANON_KEY", ""),
-			JWTSecret: getEnv("SUPABASE_JWT_SECRET", ""),
+			URL:       supabaseURL,
+			Key:       supabaseKey,
+			JWTSecret: supabaseJWT,
 		},
 		Auth: AuthConfig{
-			JWTSecret:          getEnv("JWT_SECRET", ""),
+			JWTSecret:          jwtSecret,
 			AccessTokenExpiry:  24 * time.Hour,
 			RefreshTokenExpiry: 7 * 24 * time.Hour,
 		},

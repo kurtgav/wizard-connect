@@ -4,9 +4,8 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
+    healthCheckPath: /health
     envVars:
-      - key: PORT
-        value: 8080
       - key: ENVIRONMENT
         value: production
       - key: SUPABASE_URL
