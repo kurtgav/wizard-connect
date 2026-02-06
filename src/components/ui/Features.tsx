@@ -1,65 +1,76 @@
 // ============================================
-// FEATURES SECTION - ENHANCED PIXEL ART
+// FEATURES SECTION - PIXEL CONCEPT DESIGN
+// High quality icons from Nano Banana Pro
 // ============================================
 
+import Link from 'next/link'
+import { PixelIcon, PixelIconName } from '@/components/ui/PixelIcon'
+
 export function Features() {
-  const features = [
-    {
-      icon: '🎯',
-      title: 'Smart Matching',
-      description: 'Our advanced algorithm considers personality, values, interests, and lifestyle to find your most compatible matches.',
-      color: '#D32F2F',
-      bgColor: '#FFE5D9'
-    },
-    {
-      icon: '💝',
-      title: 'Crush List',
-      description: 'Secretly submit up to 5 crushes. If it\'s mutual, you\'ll both get a compatibility boost!',
-      color: '#1976D2',
-      bgColor: '#E8F8F5'
-    },
-    {
-      icon: '🔒',
-      title: 'Privacy First',
-      description: 'Your responses are confidential. Only your matches will see your profile information.',
-      color: '#D32F2F',
-      bgColor: '#FFF8E7'
-    },
-    {
-      icon: '💬',
-      title: 'Early Messaging',
-      description: 'Get exclusive early access from Feb 11-13 to message your matches before the public reveal!',
-      color: '#1976D2',
-      bgColor: '#FFE5D9'
-    },
-    {
-      icon: '🎓',
-      title: 'Mapua Exclusive',
-      description: 'Exclusively for Mapua Malayan Colleges Laguna students. Connect with your fellow Cardinals!',
-      color: '#D32F2F',
-      bgColor: '#E8F8F5'
-    },
-    {
-      icon: '📱',
-      title: 'Pixel Perfect UI',
-      description: 'Beautiful retro pixel art interface optimized for all devices. Mobile-friendly!',
-      color: '#1976D2',
-      bgColor: '#FFF8E7'
-    }
-  ]
+  const features: {
+    title: string;
+    description: string;
+    icon: PixelIconName;
+    color: string;
+    bg: string;
+  }[] = [
+      {
+        title: 'Smart Matching',
+        description: 'Our advanced algorithm considers personality, values, and interests.',
+        icon: 'target',
+        color: '#FF6B9D',
+        bg: '#FFF0F5'
+      },
+      {
+        title: 'Crush List',
+        description: 'Secretly submit up to 5 crushes. Mutual matches get a boost!',
+        icon: 'envelope',
+        color: '#00D4FF',
+        bg: '#E0F7FA'
+      },
+      {
+        title: 'Privacy First',
+        description: 'Your responses are confidential. Only matches see your profile.',
+        icon: 'lock',
+        color: '#9B59B6',
+        bg: '#F3E5F5'
+      },
+      {
+        title: 'Early Messaging',
+        description: 'Get exclusive early access to message your matches.',
+        icon: 'bubble',
+        color: '#FF8E53',
+        bg: '#FFF3E0'
+      },
+      {
+        title: 'Mapua Exclusive',
+        description: 'Exclusively for Mapua Malayan Colleges Laguna students.',
+        icon: 'cap',
+        color: '#00D4FF',
+        bg: '#E1F5FE'
+      },
+      {
+        title: 'Pixel Perfect UI',
+        description: 'Beautiful 8-bit interface optimized for all devices.',
+        icon: 'palette',
+        color: '#FF6B9D',
+        bg: '#FCE4EC'
+      }
+    ]
 
   return (
-    <section className="py-20 px-4 bg-white">
-      <div className="pixel-container">
+    <section className="py-20 px-4 bg-[#F8FCFF]">
+      <div className="pixel-container max-w-7xl mx-auto">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="pixel-text-shadow gradient-text-animated pixel-font-heading text-4xl md:text-6xl font-bold mb-4">
-            Why Wizard Connect?
+          <h2 className="pixel-font-heading text-3xl md:text-5xl font-bold mb-4 text-[#2C3E50]">
+            WHAT WE <span className="text-[#00D4FF]">DO</span>_?
           </h2>
-          <div className="pixel-divider max-w-md mx-auto" style={{ margin: '16px auto 24px' }}></div>
-          <p className="pixel-font-body text-xl" style={{ color: '#2D3436', maxWidth: '600px', margin: '0 auto' }}>
-            The most magical way to find your Valentine at Mapua!
-          </p>
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-2 h-2 bg-[#FF6B9D]"></div>
+            <div className="w-2 h-2 bg-[#9B59B6]"></div>
+            <div className="w-2 h-2 bg-[#00D4FF]"></div>
+          </div>
         </div>
 
         {/* Features Grid */}
@@ -67,46 +78,35 @@ export function Features() {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="pixel-card hover-lift group pixel-shine-effect"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              className="group relative bg-white border-4 border-[#2C3E50] p-6 shadow-[8px_8px_0_#2C3E50] hover:translate-y-[-4px] transition-all duration-200"
             >
-              {/* Icon Container */}
-              <div className="mb-4">
-                <div className="text-7xl pixel-bounce" style={{ filter: 'drop-shadow(4px 4px 0 rgba(0,0,0,0.2))' }}>
-                  {feature.icon}
+              {/* Background color block */}
+              <div
+                className="absolute inset-0 opacity-20 transition-opacity group-hover:opacity-30"
+                style={{ background: feature.bg }}
+              />
+
+              <div className="relative z-10 flex flex-col items-start h-full">
+                {/* Pixel Icon Container */}
+                <div className="mb-6 relative pixel-bounce p-2 bg-white border-2 border-[#2C3E50] rounded-lg shadow-sm" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <PixelIcon name={feature.icon} size={48} />
+                </div>
+
+                <h3 className="pixel-font-heading text-lg font-bold mb-3" style={{ color: feature.color }}>
+                  {feature.title}
+                </h3>
+
+                <p className="pixel-font-body text-sm text-[#34495E] leading-relaxed">
+                  {feature.description}
+                </p>
+
+                {/* Decorative arrow */}
+                <div className="mt-auto pt-4 text-[#2C3E50] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                  {`->`}
                 </div>
               </div>
-
-              {/* Title */}
-              <h3
-                className="pixel-font-heading text-xl font-bold mb-4"
-                style={{ color: feature.color }}
-              >
-                {feature.title}
-              </h3>
-
-              {/* Description */}
-              <p className="pixel-font-body leading-relaxed" style={{ color: '#2D3436' }}>
-                {feature.description}
-              </p>
-
-              {/* Decorative Element */}
-              <div className="mt-4 pixel-divider opacity-30"></div>
             </div>
           ))}
-        </div>
-
-        {/* Call to Action Banner */}
-        <div className="mt-16 pixel-card hover-lift text-center" style={{ background: 'linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%)' }}>
-          <h3 className="pixel-text-shadow pixel-font-heading text-3xl font-bold mb-4 text-white">
-            Ready to Find Your Match? 🪄
-          </h3>
-          <p className="pixel-font-body text-lg text-white mb-6" style={{ opacity: 0.95 }}>
-            Join hundreds of Mapua students in the search for love this Valentine's Day!
-          </p>
-          <button className="pixel-btn pixel-font-heading pixel-ripple" style={{ background: '#FFFFFF', color: '#D32F2F' }}>
-            💝 Get Started Now
-          </button>
         </div>
       </div>
     </section>

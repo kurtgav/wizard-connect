@@ -1,229 +1,209 @@
 // ============================================
-// HERO SECTION - ENHANCED PIXEL ART
+// HERO SECTION - PIXEL CONCEPT HIGH END
+// Recreating the reference style with CSS Art & Assets
 // ============================================
 
 'use client'
 
-import { CountdownTimer } from './CountdownTimer'
-import { MAPUA_INFO } from '@/types'
+import Link from 'next/link'
+import Image from 'next/image'
+import { PixelIcon } from '@/components/ui/PixelIcon'
+import { motion } from 'framer-motion'
 
 export function Hero() {
-  const surveyOpenDate = '2026-02-05T00:00:00'
-
   return (
-    <section className="relative min-h-screen flex items-center justify-center py-20 px-4 overflow-hidden">
-      {/* Animated Pixel Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `
-            repeating-linear-gradient(0deg, #D32F2F 0px, #D32F2F 2px, transparent 2px, transparent 12px),
-            repeating-linear-gradient(90deg, #1976D2 0px, #1976D2 2px, transparent 2px, transparent 12px)
-          `,
-          backgroundSize: '24px 24px',
-          animation: 'pixel-scroll 20s linear infinite'
-        }} />
+    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#E6F3FF]">
+
+      {/* 1. Dynamic Background Layers */}
+      <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#E6F3FF] via-[#E6F3FF] to-[#FFD1DC]" />
+
+      {/* City Skyline Background Layer */}
+      <div className="absolute inset-0 z-5 pointer-events-none opacity-40">
+        <Image
+          src="/images/hero-bg-pixel.png"
+          alt="Pixel City Skyline"
+          fill
+          className="object-cover object-center translate-y-20 grayscale brightness-110"
+          priority
+        />
       </div>
 
-      {/* Floating Pixel Decorations */}
-      <div className="absolute top-20 left-10 text-6xl pixel-bounce" style={{ animationDelay: '0s' }}>
-        ⭐
+      {/* 2. Pixel Decorations Layer - Sticker Bomb Effect */}
+      <div className="absolute inset-0 z-10 pointer-events-none">
+        {/* Large Decorative Stickers */}
+        <motion.div
+          className="absolute top-[15%] left-[5%] rotate-[-15deg]"
+          animate={{ y: [0, -15, 0], rotate: [-15, -10, -15] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <PixelIcon name="star" size={120} className="opacity-20 translate-x-10" />
+        </motion.div>
+
+        <motion.div
+          className="absolute top-[20%] right-[10%] rotate-[20deg]"
+          animate={{ y: [0, -20, 0], rotate: [20, 25, 20] }}
+          transition={{ duration: 6, repeat: Infinity, delay: 1, ease: "easeInOut" }}
+        >
+          <PixelIcon name="heart_solid" size={100} className="opacity-15 -translate-x-10" />
+        </motion.div>
+
+        <motion.div
+          className="absolute bottom-[25%] left-[15%] rotate-[-5deg]"
+          animate={{ y: [0, -10, 0] }}
+          transition={{ duration: 4, repeat: Infinity, delay: 0.5, ease: "easeInOut" }}
+        >
+          <PixelIcon name="trophy" size={60} className="opacity-10 translate-y-10" />
+        </motion.div>
+
+        {/* Small scattered "stickers" */}
+        {[...Array(12)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute"
+            initial={{ opacity: 0.2, scale: 1 }}
+            animate={{
+              opacity: [0.2, 0.4, 0.2],
+              y: [0, -12, 0],
+            }}
+            transition={{
+              duration: 3 + (i % 4),
+              repeat: Infinity,
+              delay: i * 0.4
+            }}
+            style={{
+              top: `${(i * 7 + 10) % 90}%`,
+              left: `${(i * 13 + 5) % 95}%`,
+              rotate: `${(i * 15) % 60 - 30}deg`
+            }}
+          >
+            <PixelIcon
+              name={i % 3 === 0 ? 'sparkle' : i % 3 === 1 ? 'heart_solid' : 'star'}
+              size={20 + (i % 3) * 12}
+              className="text-white/40 filter drop-shadow-[2px_2px_0_rgba(0,0,0,0.1)]"
+            />
+          </motion.div>
+        ))}
       </div>
-      <div className="absolute top-40 right-20 text-5xl pixel-bounce" style={{ animationDelay: '0.5s' }}>
-        💫
-      </div>
-      <div className="absolute bottom-32 left-20 text-5xl pixel-bounce" style={{ animationDelay: '1s' }}>
-        ✨
-      </div>
-      <div className="absolute bottom-40 right-10 text-6xl pixel-bounce" style={{ animationDelay: '1.5s' }}>
-        💖
-      </div>
 
-      <div className="pixel-container relative z-10">
-        <div className="pixel-card max-w-5xl mx-auto text-center" style={{
-          background: 'linear-gradient(135deg, #FFF8E7 0%, #FFE5D9 100%)'
-        }}>
-          {/* Enhanced Pixel Art Wizard Character */}
-          <div className="mb-8 flex justify-center">
-            <div className="pixel-avatar w-48 h-48 pixel-bounce" style={{
-              background: 'linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%)',
-              boxShadow: '8px 8px 0 #1A1A2E, 16px 16px 0 rgba(26, 26, 46, 0.2)'
-            }}>
-              <svg
-                viewBox="0 0 100 100"
-                className="w-full h-full"
-                xmlns="http://www.w3.org/2000/svg"
-                style={{ imageRendering: 'pixelated' }}
-              >
-                {/* Wizard Hat - Enhanced */}
-                <rect x="30" y="5" width="40" height="8" fill="#D32F2F" />
-                <polygon points="50,0 25,13 75,13" fill="#FF6B6B" />
-                <polygon points="50,0 35,10 65,10" fill="#FFD93D" />
-                {/* Hat Band */}
-                <rect x="30" y="13" width="40" height="4" fill="#1976D2" />
-                {/* Stars on Hat */}
-                <polygon points="40,8 42,12 46,12 43,15 44,19 40,16 36,19 37,15 34,12 38,12" fill="#FFD93D" />
-                <polygon points="60,8 62,12 66,12 63,15 64,19 60,16 56,19 57,15 54,12 58,12" fill="#FFD93D" />
+      {/* 3. Main Content Wrapper */}
+      <div className="relative z-30 flex flex-col items-center max-w-7xl w-full px-4">
 
-                {/* Face */}
-                <rect x="30" y="20" width="40" height="35" fill="#FFE5D9" />
-                {/* Cheeks */}
-                <rect x="32" y="38" width="12" height="8" fill="#FFB6C1" opacity="0.6" />
-                <rect x="56" y="38" width="12" height="8" fill="#FFB6C1" opacity="0.6" />
-                {/* Eyes - Big Pixel Style */}
-                <rect x="36" y="30" width="8" height="8" fill="#1A1A2E" />
-                <rect x="56" y="30" width="8" height="8" fill="#1A1A2E" />
-                {/* Eye Shine */}
-                <rect x="38" y="31" width="3" height="3" fill="#FFFFFF" />
-                <rect x="58" y="31" width="3" height="3" fill="#FFFFFF" />
-                {/* Eyebrows */}
-                <rect x="35" y="27" width="10" height="2" fill="#1A1A2E" />
-                <rect x="55" y="27" width="10" height="2" fill="#1A1A2E" />
-                {/* Nose */}
-                <rect x="48" y="38" width="4" height="4" fill="#E5B8A7" />
-                {/* Smile - Pixel Style */}
-                <rect x="40" y="46" width="20" height="4" fill="#1A1A2E" />
-                <rect x="38" y="44" width="4" height="4" fill="#1A1A2E" />
-                <rect x="58" y="44" width="4" height="4" fill="#1A1A2E" />
+        {/* Title Container */}
+        <div className="relative flex flex-col items-center md:items-start md:flex-row md:justify-center w-full gap-4 md:gap-12 mb-12">
 
-                {/* Beard - Enhanced */}
-                <polygon points="30,55 70,55 65,75 35,75" fill="#E8E8E8" />
-                <polygon points="35,60 65,60 62,72 38,72" fill="#D4D4D4" />
-                {/* Beard Details */}
-                <rect x="45" y="65" width="10" height="8" fill="#C8C8C8" />
-                <rect x="48" y="68" width="4" height="4" fill="#B8B8B8" />
+          {/* Trophy Decoration (Left) */}
+          <motion.div
+            className="hidden lg:flex items-center justify-center self-center"
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <PixelIcon name="trophy" size={80} />
+          </motion.div>
 
-                {/* Robe/Body */}
-                <rect x="25" y="75" width="50" height="25" fill="#1976D2" />
-                <rect x="20" y="80" width="10" height="20" fill="#1976D2" />
-                <rect x="70" y="80" width="10" height="20" fill="#1976D2" />
-                {/* Robe Details */}
-                <rect x="45" y="80" width="10" height="20" fill="#FFD93D" />
-                {/* Robe Collar */}
-                <polygon points="30,75 50,85 70,75 65,78 50,88 35,78" fill="#FF6B6B" />
-
-                {/* Staff/Wand */}
-                <rect x="75" y="40" width="4" height="55" fill="#8B4513" />
-                {/* Staff Orb */}
-                <circle cx="77" cy="35" r="6" fill="#FFD93D" />
-                <circle cx="77" cy="35" r="3" fill="#FFFFFF" opacity="0.8" />
-                {/* Sparkles around Staff */}
-                <polygon points="82,28 83,31 86,31 84,33 85,36 82,34 79,36 80,33 77,31 80,31" fill="#FFD93D" />
-              </svg>
-            </div>
-          </div>
-
-          {/* Title - Enhanced Pixel Style */}
-          <div className="mb-6">
-            <h1 className="pixel-text-shadow pixel-font-heading text-4xl md:text-6xl font-bold mb-2 gradient-text-animated">
-              WIZARD CONNECT
+          {/* Heading with 3D Pixel Style */}
+          <div className="text-center md:text-left">
+            <h1 className="font-['Press_Start_2P',_monospace] text-4xl sm:text-6xl md:text-8xl flex flex-col gap-2 tracking-tighter">
+              {/* WIZARD */}
+              <span className="relative text-white drop-shadow-[6px_6px_0_#2e5c8e] [text-shadow:_-2px_-2px_0_#2e5c8e,_2px_-2px_0_#2e5c8e,_-2px_2px_0_#2e5c8e,_2px_2px_0_#2e5c8e]">
+                WIZARD
+              </span>
+              {/* CONNECT */}
+              <span className="relative text-white drop-shadow-[6px_6px_0_#2e5c8e] [text-shadow:_-2px_-2px_0_#2e5c8e,_2px_-2px_0_#2e5c8e,_-2px_2px_0_#2e5c8e,_2px_2px_0_#2e5c8e]">
+                CONNECT
+              </span>
             </h1>
-            <div className="pixel-divider" style={{ height: '4px', margin: '16px auto' }}></div>
           </div>
 
-          <div className="pixel-badge mb-6" style={{ fontSize: '12px' }}>
-            {MAPUA_INFO.COLLEGE_NAME}
+          {/* Pitch Deck Text (Right) */}
+          <div className="md:self-start mt-4 md:mt-12 text-center md:text-left max-w-[200px] font-['VT323',_monospace]">
+            <p className="text-[#2e5c8e] text-lg font-bold uppercase tracking-wider mb-2">PITCH DECK DESIGN</p>
+            <p className="text-[#2e5c8e]/70 text-base leading-tight">
+              Lorem ipsum dolor sit amet, animal graecis pro no, dico adhuc.
+            </p>
           </div>
+        </div>
 
-          <p className="pixel-font-body text-2xl md:text-3xl mb-8" style={{ color: '#2D3436' }}>
-            Find your perfect match this Valentine's Day! 💕
-          </p>
-
-          {/* Countdown Section - Enhanced */}
-          <div className="mb-8">
-            <h2 className="pixel-font-heading text-xl md:text-2xl font-bold mb-4" style={{ color: '#1976D2' }}>
-              ⏰ Survey Opens In:
-            </h2>
-            <CountdownTimer targetDate={surveyOpenDate} />
-          </div>
-
-          {/* Key Dates - Enhanced Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-10">
-            <div className="pixel-card hover-lift pixel-shine-effect">
-              <div className="pixel-badge mb-3">Feb 5-10</div>
-              <div className="text-4xl mb-3">📝</div>
-              <h3 className="pixel-font-heading text-base font-bold mb-2" style={{ color: '#D32F2F' }}>
-                Survey Period
-              </h3>
-              <p className="pixel-font-body text-sm" style={{ color: '#636E72' }}>
-                Complete your personality survey and crush list
-              </p>
-            </div>
-
-            <div className="pixel-card hover-lift pixel-shine-effect" style={{ animationDelay: '0.1s' }}>
-              <div className="pixel-badge mb-3" style={{ background: '#4ECDC4' }}>Feb 11-13</div>
-              <div className="text-4xl mb-3">💝</div>
-              <h3 className="pixel-font-heading text-base font-bold mb-2" style={{ color: '#1976D2' }}>
-                Profile Update
-              </h3>
-              <p className="pixel-font-body text-sm" style={{ color: '#636E72' }}>
-                Polish your profile and start messaging matches
-              </p>
-            </div>
-
-            <div className="pixel-card hover-lift pixel-shine-effect" style={{ animationDelay: '0.2s' }}>
-              <div className="pixel-badge mb-3" style={{ background: '#FF6B6B' }}>Feb 14</div>
-              <div className="text-4xl mb-3">💖</div>
-              <h3 className="pixel-font-heading text-base font-bold mb-2" style={{ color: '#D32F2F' }}>
-                Match Reveal
-              </h3>
-              <p className="pixel-font-body text-sm" style={{ color: '#636E72' }}>
-                Valentine's Day reveal of your perfect matches!
-              </p>
-            </div>
-          </div>
-
-          {/* CTA Buttons - Enhanced */}
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
-            <button className="pixel-btn pixel-btn-primary pixel-glow pixel-ripple pixel-font-heading">
-              ⚡ Sign in with Google
-            </button>
-            <button className="pixel-btn pixel-btn-secondary pixel-ripple pixel-font-heading">
-              📜 Learn More
-            </button>
-          </div>
-
-          {/* Stats Section - Enhanced */}
-          <div className="pt-8" style={{ borderTop: '4px solid #1A1A2E' }}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="pixel-border-thin p-4" style={{ background: '#FFE5D9' }}>
-                <div className="pixel-text-shadow pixel-font-heading text-4xl font-bold mb-2" style={{ color: '#D32F2F' }}>
-                  500+
-                </div>
-                <div className="pixel-font-body text-sm" style={{ color: '#2D3436' }}>
-                  Students Matched
-                </div>
-              </div>
-              <div className="pixel-border-thin p-4" style={{ background: '#E8F8F5' }}>
-                <div className="pixel-text-shadow pixel-font-heading text-4xl font-bold mb-2" style={{ color: '#1976D2' }}>
-                  85%
-                </div>
-                <div className="pixel-font-body text-sm" style={{ color: '#2D3436' }}>
-                  Success Rate
-                </div>
-              </div>
-              <div className="pixel-border-thin p-4" style={{ background: '#FFF8E7' }}>
-                <div className="pixel-text-shadow pixel-font-heading text-4xl font-bold mb-2" style={{ color: '#D32F2F' }}>
-                  100%
-                </div>
-                <div className="pixel-font-body text-sm" style={{ color: '#2D3436' }}>
-                  Free Forever
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Start Button - Green Pill Style */}
+        <div className="relative z-40">
+          <Link href="/login">
+            <motion.button
+              className="px-16 py-4 rounded-full bg-[#9FF99F] border-4 border-[#1a4a1a] shadow-[0_8px_0_#1a4a1a] text-[#1a4a1a] font-['Press_Start_2P',_monospace] text-xl md:text-2xl uppercase tracking-widest relative group transition-all"
+              whileHover={{ y: -2, boxShadow: "0 10px 0 #1a4a1a" }}
+              whileTap={{ y: 6, boxShadow: "0 2px 0 #1a4a1a" }}
+            >
+              <span className="relative z-10">START</span>
+              {/* Gloss effect */}
+              <div className="absolute top-1 left-4 right-4 h-1/3 bg-white/40 rounded-full pointer-events-none" />
+            </motion.button>
+          </Link>
         </div>
       </div>
 
-      <style jsx>{`
-        @keyframes pixel-scroll {
-          0% {
-            background-position: 0 0, 0 0;
-          }
-          100% {
-            background-position: 24px 24px, 24px 24px;
-          }
-        }
-      `}</style>
+      {/* 4. Foreground Scene - Characters & Speech Bubbles */}
+      <div className="absolute bottom-0 left-0 right-0 h-[30vh] md:h-[40vh] z-20 pointer-events-none overflow-hidden">
+
+        {/* Ground Line */}
+        <div className="absolute bottom-0 w-full h-8 bg-[#2C3E50]/20 border-t-4 border-[#2C3E50]/10" />
+
+        <div className="absolute bottom-6 w-full max-w-6xl mx-auto left-1/2 -translate-x-1/2 flex justify-between items-end px-12 md:px-24">
+
+          {/* Left Character (Girl) */}
+          <div className="relative group">
+            {/* Speech Bubble */}
+            <motion.div
+              className="absolute -top-24 left-0 bg-white border-2 border-[#2C3E50] p-3 rounded-xl shadow-[4px_4px_0_rgba(0,0,0,0.1)] flex items-center justify-center min-w-[60px]"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 1, type: "spring", stiffness: 260, damping: 20 }}
+            >
+              <PixelIcon name="smiley" size={32} />
+              <div className="absolute -bottom-2 left-6 w-4 h-4 bg-white border-b-2 border-r-2 border-[#2C3E50] transform rotate-45" />
+            </motion.div>
+
+            <div className="w-24 h-24 md:w-32 md:h-32 relative">
+              <Image
+                src="/images/sticker-girl.png"
+                alt="Girl Character"
+                fill
+                className="object-contain"
+              />
+            </div>
+          </div>
+
+          {/* Right Character (Boy) */}
+          <div className="relative group">
+            {/* Speech Bubble */}
+            <motion.div
+              className="absolute -top-24 right-0 bg-white border-2 border-[#2C3E50] p-3 rounded-xl shadow-[4px_4px_0_rgba(0,0,0,0.1)] flex items-center justify-center min-w-[60px]"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 1.5, type: "spring", stiffness: 260, damping: 20 }}
+            >
+              <PixelIcon name="heart_solid" size={32} />
+              <div className="absolute -bottom-2 right-6 w-4 h-4 bg-white border-b-2 border-r-2 border-[#2C3E50] transform rotate-45" />
+            </motion.div>
+
+            <div className="w-24 h-24 md:w-32 md:h-32 relative">
+              <Image
+                src="/images/sticker-boy.png"
+                alt="Boy Character"
+                fill
+                className="object-contain"
+              />
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* Decorative Hearts in top corners */}
+      <div className="absolute top-10 right-10 flex gap-2 z-30">
+        <PixelIcon name="heart_solid" size={24} className="animate-pulse" />
+        <PixelIcon name="heart_solid" size={24} className="animate-pulse opacity-80" />
+        <PixelIcon name="heart_solid" size={24} className="animate-pulse opacity-60" />
+      </div>
+
     </section>
   )
 }
+
