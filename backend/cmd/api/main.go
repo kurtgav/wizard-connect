@@ -110,8 +110,13 @@ func getDatabaseURL(cfg *config.Config) string {
 func getProjectID(url string) string {
 	// Extract project ID from Supabase URL
 	// Format: https://XXXXXX.supabase.co
+	// Remove protocol prefix if present
+	url = strings.TrimPrefix(url, "https://")
+	url = strings.TrimPrefix(url, "http://")
+
+	// Split by domain separator
 	parts := strings.Split(url, ".")
-	if len(parts) > 1 {
+	if len(parts) > 0 {
 		return parts[0]
 	}
 	return ""
