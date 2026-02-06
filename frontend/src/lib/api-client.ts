@@ -21,8 +21,20 @@ class APIClient {
   private baseURL: string
   private token: string | null = null
 
-  constructor(baseURL: string = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080') {
-    this.baseURL = baseURL
+  constructor(baseURL?: string) {
+    this.baseURL = baseURL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+
+    // Check for production misconfiguration
+    if (typeof window !== 'undefined' &&
+      window.location.hostname !== 'localhost' &&
+      window.location.hostname !== '127.0.0.1' &&
+      this.baseURL.includes('localhost')) {
+      console.error(
+        '🚨 API CONFIGURATION ERROR: The frontend is deployed but trying to connect to localhost.\n' +
+        'Please set NEXT_PUBLIC_API_URL in your Vercel project settings to your production backend URL.\n' +
+        'Current baseURL:', this.baseURL
+      )
+    }
   }
 
   // Set authentication token
