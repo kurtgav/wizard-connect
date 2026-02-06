@@ -1,4 +1,4 @@
-# ⚡ Wizard Connect
+# ⚡ Wizard Connect Created by: Kurt Gavin
 
 A university matching platform that connects students based on personality, interests, and values.
 

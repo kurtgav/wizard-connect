@@ -13,6 +13,10 @@ backend/bin/
 .env.*.local
 frontend/.env.local
 backend/.env
+# But allow .env.example
+!.env.example
+!frontend/.env.example
+!backend/.env.example
 
 # IDE
 .vscode/
