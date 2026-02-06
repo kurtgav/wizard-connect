@@ -61,7 +61,7 @@
   --text-light: #FFFFFF;
 }
 
-@theme inline {
+@theme {
   --color-sky-base: var(--sky-base);
   --color-vapor-pink: var(--vapor-pink);
   --color-pixel-cyan: var(--pixel-cyan);
