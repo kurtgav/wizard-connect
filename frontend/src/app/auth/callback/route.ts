@@ -6,15 +6,18 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
 
-  // Create a Supabase client with the cookie store
-  const cookieStore = cookies()
+  // Create a Supabase client with cookie store
+  const cookieStore = await cookies()
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       auth: {
         storage: {
-          getItem: (key: string) => cookieStore.get(key)?.value,
+          getItem: (key: string): any => {
+            const cookie = cookieStore.get(key)
+            return cookie?.value
+          },
           setItem: (key: string, value: string) => {
             cookieStore.set({ name: key, value, ...getCookieOptions() })
           },
@@ -27,7 +30,7 @@ export async function GET(request: Request) {
   )
 
   if (code) {
-    // Exchange the code for a session
+    // Exchange code for a session
     await supabase.auth.exchangeCodeForSession(code)
   }
 

@@ -1,33 +1,57 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { PixelIcon, PixelIconName } from '@/components/ui/PixelIcon'
+import { Edit2, Save, X, Mail, Phone, Instagram, Eye, EyeOff, Shield } from 'lucide-react'
 
 export default function ProfilePage() {
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [profile, setProfile] = useState({
-    firstName: '',
-    lastName: '',
-    bio: '',
-    instagram: '',
+    firstName: 'KURT',
+    lastName: 'GAVIN',
+    bio: 'Level 1 Wizard seeking a potion master. I love retro games and coffee.',
+    instagram: 'kurt_gavin',
     phone: '',
+    email: 'kurtgavin.design@gmail.com',
     contactPreference: 'email' as 'email' | 'phone' | 'instagram',
     visibility: 'matches_only' as 'public' | 'matches_only' | 'private',
+    avatarUrl: '',
   })
 
+  // Start in view mode (false), switch to true to edit
+  const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
   const handleSave = () => {
     setIsSaving(true)
-
     // Simulate API call
     setTimeout(() => {
       setIsSaving(false)
-      alert('Profile saved successfully!')
+      setIsEditing(false)
     }, 1500)
   }
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const url = URL.createObjectURL(file)
+      setProfile(prev => ({ ...prev, avatarUrl: url }))
+    }
+  }
+
+  const getVisibilityLabel = (val: string) => {
+    switch (val) {
+      case 'public': return { label: 'Public Server', icon: Eye, color: 'text-green-600', bg: 'bg-green-100' }
+      case 'private': return { label: 'Offline Mode', icon: EyeOff, color: 'text-gray-600', bg: 'bg-gray-100' }
+      default: return { label: 'Guild Only', icon: Shield, color: 'text-blue-600', bg: 'bg-blue-100' }
+    }
+  }
+
+  const visibilityInfo = getVisibilityLabel(profile.visibility)
+  const VisIcon = visibilityInfo.icon
+
   return (
-    <div className="max-w-6xl mx-auto py-8">
+    <div className="max-w-6xl mx-auto py-8 px-4">
       {/* Header */}
       <div className="text-center mb-10">
         <h1 className="pixel-font text-3xl md:text-5xl font-bold mb-4 text-[var(--retro-navy)] uppercase tracking-tighter">
@@ -35,186 +59,260 @@ export default function ProfilePage() {
         </h1>
         <div className="inline-block bg-[var(--retro-white)] border-2 border-[var(--retro-navy)] px-4 py-1 shadow-[4px_4px_0_0_var(--retro-navy)]">
           <p className="pixel-font-body font-bold text-[var(--retro-navy)]">
-            CUSTOMIZE YOUR AVATAR
+            {isEditing ? 'CUSTOMIZE YOUR AVATAR' : 'CHARACTER SHEET'}
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Avatar & Settings */}
-        <div className="lg:col-span-1 space-y-8">
-          {/* Avatar Card */}
-          <div className="pixel-card text-center">
-            <div className="w-32 h-32 mx-auto mb-6 bg-[var(--retro-blue)] border-4 border-[var(--retro-navy)] flex items-center justify-center relative shadow-[4px_4px_0_0_rgba(0,0,0,0.2)]">
-              <PixelIcon name="smiley" size={64} className="text-white" />
-              <div className="absolute -bottom-2 -right-2 bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)] p-1">
-                <PixelIcon name="palette" size={16} />
+      {!isEditing ? (
+        // ============================
+        // VIEW MODE: ENHANCED PREVIEW CARD
+        // ============================
+        <div className="max-w-4xl mx-auto animate-in fade-in zoom-in-95 duration-500">
+          <div className="w-full bg-white border-4 border-[var(--retro-navy)] p-6 md:p-10 relative shadow-[12px_12px_0_0_rgba(30,58,138,0.2)]">
+
+            {/* Level Badge - Top Right */}
+            <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--retro-yellow)] border-l-4 border-b-4 border-[var(--retro-navy)] flex items-center justify-center">
+              <div className="transform -rotate-45 translate-x-1 translate-y-1">
+                <span className="pixel-font text-xs text-[var(--retro-navy)] block text-center">LVL.</span>
+                <span className="pixel-font text-2xl text-[var(--retro-navy)] block text-center leading-none">1</span>
+              </div>
+              <div className="absolute top-2 right-2">
+                <PixelIcon name="sparkle" size={8} className="text-[var(--retro-navy)] opacity-50" />
               </div>
             </div>
 
-            <h3 className="pixel-font text-sm mb-2 text-[var(--retro-navy)]">Profile Photo</h3>
-            <button className="pixel-btn pixel-btn-secondary w-full text-xs">
-              Upload New
-            </button>
-          </div>
-
-          {/* Visibility Settings */}
-          <div className="pixel-card bg-[var(--retro-pink)] text-[var(--retro-navy)]">
-            <div className="flex items-center gap-2 mb-4 border-b-2 border-[var(--retro-navy)] pb-2">
-              <PixelIcon name="lock" size={20} />
-              <h3 className="pixel-font text-sm">Privacy Level</h3>
-            </div>
-
-            <div className="space-y-4">
-              {[
-                { val: 'public', label: 'Public Server', desc: 'Everyone can see' },
-                { val: 'matches_only', label: 'Guild Only', desc: 'Matches only (Recommended)' },
-                { val: 'private', label: 'Offline Mode', desc: 'No one can see' }
-              ].map((option) => (
-                <label key={option.val} className="flex items-start gap-3 cursor-pointer group">
-                  <div className={`
-                    w-6 h-6 border-2 border-[var(--retro-navy)] bg-white flex items-center justify-center
-                    ${profile.visibility === option.val ? 'bg-[var(--retro-navy)]' : ''}
-                  `}>
-                    {profile.visibility === option.val && <div className="w-2 h-2 bg-white" />}
-                  </div>
-                  <input
-                    type="radio"
-                    name="visibility"
-                    value={option.val}
-                    checked={profile.visibility === option.val}
-                    onChange={(e) => setProfile({ ...profile, visibility: e.target.value as any })}
-                    className="hidden"
-                  />
-                  <div>
-                    <span className="pixel-font text-xs block group-hover:underline">{option.label}</span>
-                    <span className="pixel-font-body text-xs opacity-80">{option.desc}</span>
-                  </div>
-                </label>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Edit Form */}
-        <div className="lg:col-span-2">
-          <div className="pixel-card h-full">
-            <div className="flex items-center gap-3 mb-6 border-b-4 border-[var(--retro-navy)] pb-4">
-              <div className="p-2 bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)]">
-                <PixelIcon name="sparkle" size={20} />
-              </div>
-              <h2 className="pixel-font text-lg text-[var(--retro-navy)]">
-                Character Stats
-              </h2>
-            </div>
-
-            <div className="space-y-6">
-              {/* Name Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="pixel-font text-xs mb-2 block text-[var(--retro-navy)]">First Name</label>
-                  <input
-                    type="text"
-                    value={profile.firstName}
-                    onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
-                    className="pixel-input w-full"
-                    placeholder="PLAYER 1"
-                  />
+            <div className="flex flex-col md:flex-row gap-8 mt-2">
+              {/* LEFT COLUMN: Avatar & Status */}
+              <div className="flex-shrink-0 flex flex-col gap-4 w-full md:w-auto items-center md:items-start">
+                {/* Avatar Frame */}
+                <div className="w-56 h-56 bg-[var(--retro-blue)] border-4 border-[var(--retro-navy)] shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] relative overflow-hidden bg-white">
+                  {profile.avatarUrl ? (
+                    <img src={profile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-[var(--retro-blue)]">
+                      <PixelIcon name="smiley" size={80} className="text-white" />
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <label className="pixel-font text-xs mb-2 block text-[var(--retro-navy)]">Last Name</label>
-                  <input
-                    type="text"
-                    value={profile.lastName}
-                    onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
-                    className="pixel-input w-full"
-                    placeholder="ENTER NAME"
-                  />
+
+                {/* Status Badge */}
+                <div className={`w-56 py-2 px-3 border-2 border-[var(--retro-navy)] flex items-center justify-center gap-2 ${visibilityInfo.bg}`}>
+                  <VisIcon className={`w-4 h-4 ${visibilityInfo.color}`} />
+                  <span className={`pixel-font text-xs uppercase ${visibilityInfo.color}`}>{visibilityInfo.label}</span>
                 </div>
               </div>
 
-              {/* Bio */}
-              <div>
-                <label className="pixel-font text-xs mb-2 block text-[var(--retro-navy)]">
-                  Character Bio <span className="text-[var(--text-secondary)] pixel-font-body text-sm">(Max 500 XP)</span>
-                </label>
-                <textarea
-                  value={profile.bio}
-                  onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                  className="pixel-input w-full h-32 resize-none"
-                  placeholder="Insert lore here..."
-                  maxLength={500}
-                />
-              </div>
+              {/* RIGHT COLUMN: Info */}
+              <div className="flex-1 min-w-0 pt-2 w-full">
+                {/* Name */}
+                <h1 className="pixel-font text-4xl md:text-6xl text-[var(--retro-navy)] uppercase leading-[0.9] mb-4 text-center md:text-left">
+                  {profile.firstName}
+                  <br />
+                  {profile.lastName}
+                </h1>
 
-              {/* Social Links */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="pixel-font text-xs mb-2 block text-[var(--retro-navy)]">Instagram</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-3 text-[var(--text-secondary)]">@</span>
-                    <input
-                      type="text"
-                      value={profile.instagram}
-                      onChange={(e) => setProfile({ ...profile, instagram: e.target.value })}
-                      className="pixel-input w-full pl-8"
-                      placeholder="username"
-                    />
+                {/* Tags */}
+                <div className="flex flex-wrap gap-3 mb-8 justify-center md:justify-start">
+                  <div className="bg-[var(--retro-blue)] text-white px-4 py-1 border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_0_var(--retro-navy)]">
+                    <span className="pixel-font text-xs tracking-widest">WIZARD CLASS</span>
+                  </div>
+                  <div className="bg-[var(--retro-blue)] text-white px-4 py-1 border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_0_var(--retro-navy)]">
+                    <span className="pixel-font text-xs tracking-widest">ACTIVE</span>
                   </div>
                 </div>
-                <div>
-                  <label className="pixel-font text-xs mb-2 block text-[var(--retro-navy)]">Contact Method</label>
-                  <select
-                    value={profile.contactPreference}
-                    onChange={(e) => setProfile({ ...profile, contactPreference: e.target.value as any })}
-                    className="pixel-input w-full"
+
+                {/* Bio */}
+                <div className="relative border-2 border-[var(--retro-navy)] p-6 mb-8 mt-6">
+                  <div className="absolute -top-3 left-4 bg-white px-2 border-2 border-[var(--retro-navy)]">
+                    <span className="pixel-font text-xs text-[var(--retro-navy)] uppercase tracking-wider">
+                      BIO / LORE
+                    </span>
+                  </div>
+                  <p className="font-[family-name:var(--font-vt323)] text-xl text-[var(--retro-navy)] leading-relaxed">
+                    {profile.bio || "No bio set."}
+                  </p>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Email */}
+                  <div className="border-2 border-dashed border-[var(--retro-navy)] p-3 flex items-center gap-3">
+                    <div className="w-12 h-12 flex-shrink-0 bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)] flex items-center justify-center">
+                      <Mail className="w-6 h-6 text-[var(--retro-navy)]" />
+                    </div>
+                    <div className="min-w-0 overflow-hidden">
+                      <span className="pixel-font text-[10px] text-[var(--retro-navy)] opacity-60 block mb-0.5 tracking-wider">EMAIL SCROLL</span>
+                      <span className="pixel-font-body font-bold text-sm text-[var(--retro-navy)] truncate block" title={profile.email}>{profile.email}</span>
+                    </div>
+                  </div>
+
+                  {/* Instagram */}
+                  <div className="border-2 border-dashed border-[var(--retro-navy)] p-3 flex items-center gap-3">
+                    <div className="w-12 h-12 flex-shrink-0 bg-[var(--retro-pink)] border-2 border-[var(--retro-navy)] flex items-center justify-center">
+                      <Instagram className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="pixel-font text-[10px] text-[var(--retro-navy)] opacity-60 block mb-0.5 tracking-wider">INSTAGRAM</span>
+                      <span className="pixel-font-body font-bold text-sm text-[var(--retro-navy)]">@{profile.instagram || '-'}</span>
+                    </div>
+                  </div>
+
+                  {/* Preferred Contact */}
+                  <div className="border-2 border-dashed border-[var(--retro-navy)] p-3 flex items-center gap-3">
+                    <div className="w-12 h-12 flex-shrink-0 bg-[var(--retro-blue)] border-2 border-[var(--retro-navy)] flex items-center justify-center">
+                      <Phone className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="pixel-font text-[10px] text-[var(--retro-navy)] opacity-60 block mb-0.5 tracking-wider">PREFERRED CONTACT</span>
+                      <span className="pixel-font-body font-bold text-sm text-[var(--retro-navy)] uppercase">{profile.contactPreference}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Edit Button */}
+                <div className="flex justify-end mt-8">
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="bg-[var(--retro-yellow)] text-[var(--retro-navy)] border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_0_var(--retro-navy)] px-6 py-3 flex items-center gap-3 hover:translate-y-[-2px] hover:shadow-[6px_6px_0_0_var(--retro-navy)] transition-all active:translate-y-[0px] active:shadow-[2px_2px_0_0_var(--retro-navy)] w-full md:w-auto justify-center"
                   >
-                    <option value="email">Email Scroll</option>
-                    <option value="phone">Phone Signal</option>
-                    <option value="instagram">DM Raven</option>
-                  </select>
+                    <Edit2 className="w-4 h-4" />
+                    <span className="pixel-font text-sm uppercase">EDIT PROFILE</span>
+                  </button>
                 </div>
-              </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-4 pt-6 border-t-2 border-dashed border-[var(--retro-navy)] mt-6">
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="pixel-btn flex-1 text-sm py-4"
-                >
-                  {isSaving ? 'SAVING...' : 'SAVE CHANGES'}
-                </button>
-                <button className="pixel-btn pixel-btn-secondary flex-1 text-sm py-4">
-                  PREVIEW CARD
-                </button>
               </div>
-
             </div>
           </div>
         </div>
-      </div>
+      ) : (
+        // ============================
+        // EDIT MODE: FORM LAYOUT
+        // ============================
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in slide-in-from-right-8 duration-500">
+          {/* ... Keep the Avatar/Settings Left Column ... */}
+          <div className="lg:col-span-1 space-y-8">
+            {/* Avatar Picker */}
+            <div className="pixel-card text-center">
+              <div className="w-32 h-32 mx-auto mb-6 bg-[var(--retro-blue)] border-4 border-[var(--retro-navy)] flex items-center justify-center relative shadow-[4px_4px_0_0_rgba(0,0,0,0.2)] overflow-hidden bg-white">
+                {profile.avatarUrl ? (
+                  <img src={profile.avatarUrl} alt="Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <PixelIcon name="smiley" size={64} className="text-white w-full h-full p-4 bg-[var(--retro-blue)]" />
+                )}
+                <div className="absolute -bottom-2 -right-2 bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)] p-1 z-10">
+                  <PixelIcon name="palette" size={16} />
+                </div>
+              </div>
+              <h3 className="pixel-font text-sm mb-2 text-[var(--retro-navy)]">Profile Photo</h3>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageUpload}
+                accept="image/*"
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="pixel-btn pixel-btn-secondary w-full text-xs"
+              >
+                Upload New
+              </button>
+            </div>
+
+            {/* Visibility Settings - NOW EDITABLE */}
+            <div className="pixel-card bg-[var(--retro-pink)] text-[var(--retro-navy)]">
+              <div className="flex items-center gap-2 mb-4 border-b-2 border-[var(--retro-navy)] pb-2">
+                <PixelIcon name="lock" size={20} />
+                <h3 className="pixel-font text-sm">Privacy Level</h3>
+              </div>
+              <div className="space-y-4">
+                {[
+                  { val: 'public', label: 'Public Server', desc: 'Everyone can see' },
+                  { val: 'matches_only', label: 'Guild Only', desc: 'Matches only' },
+                  { val: 'private', label: 'Offline Mode', desc: 'Hidden' }
+                ].map((option) => (
+                  <label key={option.val} className="flex items-start gap-3 cursor-pointer group">
+                    <div className={`
+                            w-6 h-6 border-2 border-[var(--retro-navy)] bg-white flex items-center justify-center
+                            ${profile.visibility === option.val ? 'bg-[var(--retro-navy)]' : ''}
+                          `}>
+                      {profile.visibility === option.val && <div className="w-2 h-2 bg-white" />}
+                    </div>
+                    <input type="radio" checked={profile.visibility === option.val} onChange={() => setProfile({ ...profile, visibility: option.val as any })} className="hidden" />
+                    <div>
+                      <span className="pixel-font text-xs block">{option.label}</span>
+                      <span className="pixel-font-body text-xs opacity-80">{option.desc}</span>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Inputs */}
+          <div className="lg:col-span-2">
+            <div className="pixel-card h-full">
+              <div className="flex items-center justify-between mb-6 border-b-4 border-[var(--retro-navy)] pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)]">
+                    <PixelIcon name="sparkle" size={20} />
+                  </div>
+                  <h2 className="pixel-font text-lg text-[var(--retro-navy)]">Edit Stats</h2>
+                </div>
+                <button onClick={() => setIsEditing(false)} className="text-[var(--retro-navy)] hover:text-[var(--retro-red)]">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="pixel-font text-xs mb-2 block text-[var(--retro-navy)]">First Name</label>
+                    <input type="text" value={profile.firstName} onChange={(e) => setProfile({ ...profile, firstName: e.target.value })} className="pixel-input w-full" />
+                  </div>
+                  <div>
+                    <label className="pixel-font text-xs mb-2 block text-[var(--retro-navy)]">Last Name</label>
+                    <input type="text" value={profile.lastName} onChange={(e) => setProfile({ ...profile, lastName: e.target.value })} className="pixel-input w-full" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="pixel-font text-xs mb-2 block text-[var(--retro-navy)]">Bio</label>
+                  <textarea value={profile.bio} onChange={(e) => setProfile({ ...profile, bio: e.target.value })} className="pixel-input w-full h-32 resize-none" maxLength={500} />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="pixel-font text-xs mb-2 block text-[var(--retro-navy)]">Instagram</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-3 text-[var(--text-secondary)]">@</span>
+                      <input type="text" value={profile.instagram} onChange={(e) => setProfile({ ...profile, instagram: e.target.value })} className="pixel-input w-full pl-8" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="pixel-font text-xs mb-2 block text-[var(--retro-navy)]">Contact Preference</label>
+                    <select value={profile.contactPreference} onChange={(e) => setProfile({ ...profile, contactPreference: e.target.value as any })} className="pixel-input w-full">
+                      <option value="email">Email</option>
+                      <option value="phone">Phone</option>
+                      <option value="instagram">Instagram</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-6 mt-8 border-t-2 border-dashed border-[var(--retro-navy)]">
+                  <button onClick={handleSave} disabled={isSaving} className="pixel-btn w-full py-4 bg-[var(--retro-yellow)] text-[var(--retro-navy)]">
+                    {isSaving ? <span className="animate-pulse">SAVING...</span> : <><Save className="w-4 h-4 mr-2 inline" /> SAVE CHANGES</>}
+                  </button>
+                  <button onClick={() => setIsEditing(false)} className="pixel-btn pixel-btn-secondary w-full py-4 text-[var(--retro-navy)]">
+                    CANCEL
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-  )
-}
-
-// Support function for button content
-function SelectedIcon(icon: PixelIconName, text: string) {
-  return (
-    <>
-      <PixelIcon name={icon} size={16} /> {text}
-    </>
-  )
-}
-
-// Tip Item Component
-function TipItem({ icon, text }: { icon: PixelIconName; text: string }) {
-  return (
-    <li className="flex items-start gap-2">
-      <div className="flex-shrink-0 mt-0.5">
-        <PixelIcon name={icon} size={16} />
-      </div>
-      <span style={{ color: '#34495E' }}>{text}</span>
-    </li>
   )
 }

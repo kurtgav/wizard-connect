@@ -9,7 +9,7 @@ import { Features } from '@/components/ui/Features'
 import { Stats } from '@/components/ui/Stats'
 import { HowItWorks } from '@/components/ui/HowItWorks'
 import { Team } from '@/components/ui/Team'
-import { Footer } from '@/components/ui/Footer'
+import Footer from '@/components/ui/Footer'
 import { ParallaxBackground, ScanlineEffect } from '@/components/effects/ParallaxBackground'
 import { ParticleEffects, FloatingDecorations } from '@/components/effects/ParticleEffects'
 

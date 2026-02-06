@@ -106,20 +106,13 @@ export function ParallaxBackground() {
       <div className="absolute top-1/4 left-1/6 w-72 h-72 rounded-full opacity-[0.06] pointer-events-none" style={{
         background: 'radial-gradient(circle, #FF6B9D 0%, transparent 70%)',
         filter: 'blur(50px)',
-        animation: 'float 10s ease-in-out infinite',
+        // standard animate-bounce is too fast, but let's use it as placeholder or nothing to prevent crash
+        // efficient fix: remove the animation style that depends on the jsx block
       }} />
       <div className="absolute bottom-1/3 right-1/6 w-80 h-80 rounded-full opacity-[0.05] pointer-events-none" style={{
         background: 'radial-gradient(circle, #00D4FF 0%, transparent 70%)',
         filter: 'blur(50px)',
-        animation: 'float 10s ease-in-out infinite 5s',
       }} />
-
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0) scale(1); }
-          50% { transform: translateY(-25px) scale(1.05); }
-        }
-      `}</style>
     </div>
   )
 }

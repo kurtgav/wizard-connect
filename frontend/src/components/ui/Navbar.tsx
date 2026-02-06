@@ -2,125 +2,226 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Menu, X, User, Gamepad2 } from 'lucide-react'
+import {
+    Menu, X, Home, BarChart2, Info, Heart, FileText,
+    MessageCircle, Gift, User, LayoutDashboard, LogOut, Loader2
+} from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 import { PixelIcon } from '@/components/ui/PixelIcon'
 
 export function Navbar() {
-    const [isScrolled, setIsScrolled] = useState(false)
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+    const pathname = usePathname()
+    const router = useRouter()
+    const [isOpen, setIsOpen] = useState(false)
+    const [user, setUser] = useState<any>(null)
+    const [isAdmin, setIsAdmin] = useState(false)
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 20)
+        const checkUser = async () => {
+            const supabase = createClient()
+            const { data: { user } } = await supabase.auth.getUser()
+            setUser(user)
+            if (user) {
+                const adminRole = user.user_metadata?.role === 'admin' || user.user_metadata?.is_admin === true
+                setIsAdmin(adminRole)
+            }
+            setLoading(false)
         }
-        window.addEventListener('scroll', handleScroll)
-        return () => window.removeEventListener('scroll', handleScroll)
+        checkUser()
     }, [])
 
-    const navLinks = [
-        { href: '#features', label: 'Features' },
-        { href: '#stats', label: 'Stats' },
-        { href: '#how-it-works', label: 'How it Works' },
-        { href: '#team', label: 'Team' },
+    const handleSignOut = async () => {
+        const supabase = createClient()
+        await supabase.auth.signOut()
+        router.push('/login')
+        router.refresh()
+    }
+
+    const publicLinks = [
+        { href: '/', label: 'HOME', icon: Home },
+        { href: '/#stats', label: 'STATS', icon: BarChart2 },
+        { href: '/#how-it-works', label: 'ABOUT', icon: Info },
+        { href: '/stories', label: 'STORIES', icon: Heart },
     ]
+
+    const protectedLinks = [
+        { href: '/survey', label: 'FORM', icon: FileText },
+        { href: '/matches', label: 'MATCHES', icon: Heart },
+        { href: '/messages', label: 'MESSAGES', icon: MessageCircle },
+        { href: '/profile', label: 'PROFILE', icon: User },
+    ]
+
+    const navLinks = user ? [...publicLinks, ...protectedLinks] : publicLinks
+
+    // Desktop Nav Items (Admin is handled separately or appended)
+    const desktopLinks = isAdmin
+        ? [...navLinks.slice(0, navLinks.length - 1), { href: '/admin/dashboard', label: 'ADMIN PANEL', icon: LayoutDashboard }, navLinks[navLinks.length - 1]]
+        : navLinks
+
+    // Helper to determine active state
+    const isActive = (path: string) => {
+        if (path === '/' && pathname === '/') return true
+        if (path !== '/' && pathname.startsWith(path)) return true
+        return false
+    }
+
+    if (loading) {
+        return null // or a small spinner if needed
+    }
+
+    // Only render full navbar if logged in (per user request context), 
+    // but we can fall back to a simple one or the old one if not. 
+    // For now, let's assuming this specific navbar is for the authenticated experience.
+    // If not logged in, we might want to show the 'Login' button version.
+    // However, the prompt specifically asks for "this" navbar.
 
     return (
         <>
-            <header
-                className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-                    ? 'py-3 bg-[var(--retro-white)]/90 backdrop-blur-md border-b-4 border-[var(--retro-navy)]'
-                    : 'py-5 bg-transparent'
-                    }`}
-            >
-                <div className="max-w-7xl mx-auto px-4">
-                    <div className="flex items-center justify-between">
-                        {/* Logo */}
-                        <Link href="/" className="flex items-center gap-3 group">
-                            <div className="relative w-16 h-16 group-hover:scale-110 transition-transform">
-                                <Image
-                                    src="/images/wizardconnect-logo.png"
-                                    alt="Wizard Connect Logo"
-                                    fill
-                                    className="object-contain drop-shadow-[2px_2px_0_rgba(44,62,80,0.5)]"
-                                />
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="pixel-font font-bold text-lg leading-tight text-[var(--retro-navy)]">
-                                    WIZARD
-                                </span>
-                                <span className="pixel-font font-bold text-sm leading-tight text-[var(--retro-pink)]">
-                                    CONNECT
-                                </span>
-                            </div>
-                        </Link>
+            {/* Desktop Header */}
+            <header className="fixed top-0 left-0 right-0 z-50 bg-[var(--retro-cream)] border-b-4 border-[var(--retro-navy)] h-20">
+                <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
 
-                        {/* Desktop Navigation */}
-                        <nav className="hidden md:flex items-center gap-8">
-                            {navLinks.map((link) => (
+                    {/* Logo (Optional/Implied) - Keeping it simple or existing logic */}
+                    <Link href="/" className="flex items-center gap-3 shrink-0 md:mr-8">
+                        <div className="relative w-10 h-10 md:w-12 md:h-12">
+                            <Image
+                                src="/images/wizardconnect-logo.png"
+                                alt="Logo"
+                                fill
+                                className="object-contain"
+                            />
+                        </div>
+                    </Link>
+
+                    {/* Desktop Navigation Links */}
+                    <nav className="hidden xl:flex items-center gap-2 flex-1 justify-center">
+                        {desktopLinks.map((link) => {
+                            const active = isActive(link.href)
+                            // "Form" and "Admin" might have special colors if desired, 
+                            // but usually "Active" style controls it.
+                            return (
                                 <Link
                                     key={link.label}
                                     href={link.href}
-                                    className="pixel-font-body font-bold text-sm text-[var(--retro-navy)] hover:text-[var(--retro-blue)] hover:underline decoration-2 underline-offset-4 transition-colors relative group"
+                                    className={`
+                                        font-black text-sm px-4 py-2 transition-all transform
+                                        ${active
+                                            ? 'bg-[var(--retro-yellow)] text-[var(--retro-navy)] border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_var(--retro-navy)] -translate-y-1'
+                                            : 'text-[var(--retro-navy)] hover:text-[var(--retro-blue)] hover:translate-y-[-2px]'
+                                        }
+                                    `}
                                 >
                                     {link.label}
-                                    <span className="absolute -top-4 -right-4 opacity-0 group-hover:opacity-100 transition-opacity animate-bounce">
-                                        <PixelIcon name="sparkle" size={12} />
-                                    </span>
                                 </Link>
-                            ))}
-                        </nav>
+                            )
+                        })}
+                    </nav>
 
-                        {/* CTA Buttons */}
-                        <div className="hidden md:flex items-center gap-4">
-                            <Link href="/login">
-                                <button className="flex items-center gap-2 font-bold text-sm text-[var(--retro-navy)] hover:text-[var(--retro-pink)] transition-colors pixel-font">
-                                    <User className="w-4 h-4" />
-                                    Login
-                                </button>
+                    {/* Right Side: Profile / Mobile Toggle */}
+                    <div className="flex items-center gap-4">
+                        {/* Desktop Logout Button */}
+                        {user ? (
+                            <button onClick={handleSignOut} className="hidden md:block">
+                                <div className="w-12 h-12 bg-white border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_var(--retro-navy)] flex items-center justify-center hover:translate-y-[-2px] transition-transform cursor-pointer">
+                                    <LogOut className="text-[var(--retro-navy)] w-6 h-6" />
+                                </div>
+                            </button>
+                        ) : (
+                            <Link href="/login" className="hidden md:block pixel-btn py-2 px-4 text-xs">
+                                LOGIN
                             </Link>
-                            <Link href="/login">
-                                <button className="pixel-btn px-6 py-3 text-xs flex items-center gap-2 hover:scale-105 transition-transform -translate-y-1">
-                                    <Gamepad2 className="w-4 h-4" />
-                                    START GAME
-                                </button>
-                            </Link>
-                        </div>
+                        )}
 
-                        {/* Mobile Menu Toggle */}
+                        {/* Mobile Toggle Button */}
                         <button
-                            className="md:hidden text-[var(--retro-navy)]"
-                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                            className="xl:hidden w-12 h-12 bg-white border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_var(--retro-navy)] flex items-center justify-center active:translate-y-[2px] active:shadow-none transition-all"
+                            onClick={() => setIsOpen(true)}
                         >
-                            {isMobileMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
+                            <Menu className="w-8 h-8 text-[var(--retro-navy)]" />
                         </button>
                     </div>
                 </div>
             </header>
 
             {/* Mobile Menu Overlay */}
-            {isMobileMenuOpen && (
-                <div className="fixed inset-0 z-40 bg-[var(--retro-white)]/95 backdrop-blur-xl pt-24 px-6 md:hidden">
-                    <nav className="flex flex-col gap-6 text-center">
-                        {navLinks.map((link) => (
+            {isOpen && (
+                <div className="fixed inset-0 z-[60] bg-[var(--retro-cream)] flex flex-col">
+                    {/* Mobile Header with Close Button */}
+                    <div className="h-20 flex items-center justify-end px-4 border-b-4 border-[var(--retro-navy)] bg-[var(--retro-cream)]">
+                        <button
+                            onClick={() => setIsOpen(false)}
+                            className="w-12 h-12 bg-white border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_var(--retro-navy)] flex items-center justify-center active:translate-y-[2px] active:shadow-none transition-all"
+                        >
+                            <X className="w-8 h-8 text-[var(--retro-red)]" />
+                        </button>
+                    </div>
+
+                    {/* Scrollable Links Area */}
+                    <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-[url('/images/grid-bg.png')]">
+                        {navLinks.map((link) => {
+                            const active = isActive(link.href)
+                            return (
+                                <Link
+                                    key={link.label}
+                                    href={link.href}
+                                    onClick={() => setIsOpen(false)}
+                                    className={`
+                                        w-full flex items-center justify-between p-4 border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_var(--retro-navy)] transition-transform active:scale-[0.98]
+                                        ${active ? 'bg-[var(--retro-pink)]' : 'bg-white'}
+                                    `}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <link.icon className={`w-6 h-6 ${active ? 'text-[var(--retro-navy)]' : 'text-[var(--retro-blue)]'}`} />
+                                        <span className="font-bold text-[var(--retro-navy)] text-lg tracking-wide">{link.label}</span>
+                                    </div>
+                                    {active && <div className="w-3 h-3 bg-[var(--retro-yellow)] border border-[var(--retro-navy)]" />}
+                                </Link>
+                            )
+                        })}
+
+                        {/* Admin Link for Mobile */}
+                        {isAdmin && (
                             <Link
-                                key={link.label}
-                                href={link.href}
-                                className="pixel-font text-xl text-[var(--retro-navy)] hover:text-[var(--retro-pink)]"
-                                onClick={() => setIsMobileMenuOpen(false)}
+                                href="/admin/dashboard"
+                                onClick={() => setIsOpen(false)}
+                                className={`
+                                    w-full flex items-center justify-between p-4 border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_var(--retro-navy)] bg-white transition-transform active:scale-[0.98]
+                                `}
                             >
-                                {link.label}
+                                <div className="flex items-center gap-4">
+                                    <LayoutDashboard className="w-6 h-6 text-[var(--retro-navy)]" />
+                                    <span className="font-bold text-[var(--retro-navy)] text-lg tracking-wide">ADMIN PANEL</span>
+                                </div>
                             </Link>
-                        ))}
-                        <div className="h-px bg-[var(--retro-navy)]/20 my-2" />
-                        <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                            <button className="w-full pixel-btn py-4 text-sm bg-[var(--retro-pink)] text-white">
-                                LOGIN
+                        )}
+                    </div>
+
+                    {/* Safe Area / Disconnect Button */}
+                    <div className="p-6 border-t-4 border-[var(--retro-navy)] bg-[var(--retro-cream)]">
+                        {user ? (
+                            <button
+                                onClick={handleSignOut}
+                                className="w-full flex items-center justify-center gap-3 p-4 bg-[var(--retro-navy)] border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_var(--retro-red)] text-white font-bold hover:bg-[#152c6b] transition-colors"
+                            >
+                                <LogOut className="w-5 h-5 text-[var(--retro-yellow)]" />
+                                DISCONNECT
                             </button>
-                        </Link>
-                    </nav>
+                        ) : (
+                            <Link href="/login" onClick={() => setIsOpen(false)}>
+                                <button className="w-full flex items-center justify-center gap-3 p-4 bg-[var(--retro-navy)] border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_var(--retro-yellow)] text-white font-bold">
+                                    LOGIN
+                                </button>
+                            </Link>
+                        )}
+                    </div>
                 </div>
             )}
+
+            {/* Spacer for Fixed Header */}
+            <div className="h-20" />
         </>
     )
 }

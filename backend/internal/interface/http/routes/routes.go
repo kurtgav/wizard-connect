@@ -18,6 +18,7 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 	crushRepo := database.NewCrushRepository(db)
 	messageRepo := database.NewMessageRepository(db)
 	conversationRepo := database.NewConversationRepository(db)
+	campaignRepo := database.NewCampaignRepository(db.DB)
 
 	// Initialize services
 	matchingService := services.NewMatchingService(surveyRepo, crushRepo, matchRepo)
@@ -28,6 +29,7 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 	matchController := controllers.NewMatchController(matchRepo, surveyRepo, matchingService)
 	messageController := controllers.NewMessageController(conversationRepo, messageRepo, userRepo)
 	crushController := controllers.NewCrushController(crushRepo)
+	campaignController := controllers.NewCampaignController(campaignRepo)
 
 	// Initialize auth middleware
 	authMiddleware := middleware.NewAuthMiddleware(cfg.Auth.JWTSecret)
@@ -78,6 +80,22 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 		{
 			crushes.GET("", crushController.GetCrushes)
 			crushes.POST("", crushController.SubmitCrushes)
+		}
+
+		// Admin routes (require admin role)
+		admin := protected.Group("/admin")
+		{
+			// Campaign management
+			campaigns := admin.Group("/campaigns")
+			{
+				campaigns.POST("", campaignController.CreateCampaign)
+				campaigns.GET("", campaignController.GetCampaigns)
+				campaigns.GET("/:id", campaignController.GetCampaignByID)
+				campaigns.PUT("/:id", campaignController.UpdateCampaign)
+				campaigns.DELETE("/:id", campaignController.DeleteCampaign)
+				campaigns.POST("/:id/run-algorithm", campaignController.RunMatchingAlgorithm)
+				campaigns.GET("/:id/statistics", campaignController.GetCampaignStatistics)
+			}
 		}
 	}
 }

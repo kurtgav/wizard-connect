@@ -55,7 +55,7 @@ export function PixelIcon({ name, className = "", size = 24 }: PixelIconProps) {
     const fileName = stickerMap[name] || 'star.png'
 
     return (
-        <div
+        <span
             className={`relative inline-block select-none ${className} hover-lift`}
             style={{
                 width: size,
@@ -71,6 +71,6 @@ export function PixelIcon({ name, className = "", size = 24 }: PixelIconProps) {
                 sizes={`${size}px`}
                 priority={size > 40} // Prioritize larger icons (likely LCP)
             />
-        </div>
+        </span>
     )
 }
