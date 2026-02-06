@@ -2,13 +2,11 @@
 // SUPABASE CLIENT - SERVER
 // ============================================
 
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-import type { Database } from '@/types'
+import { supabase } from '../supabase'
 
-export const createServerClient = async () => {
-  const cookieStore = await cookies()
-  return createServerComponentClient<Database>({
-    cookies: () => cookieStore,
-  })
+// Server-side supabase client
+// Note: In Next.js App Router with Supabase, we use the same client
+// The auth state is managed via cookies and tokens
+export const createServerClient = () => {
+  return supabase
 }

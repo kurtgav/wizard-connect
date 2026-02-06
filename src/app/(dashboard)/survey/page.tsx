@@ -1,3 +1,5 @@
+'use client'
+
 import { SurveyForm } from '@/components/features/survey/SurveyForm'
 import { useRouter } from 'next/navigation'
 import { ParallaxBackground, ScanlineEffect } from '@/components/effects/ParallaxBackground'

@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { ParallaxBackground, ScanlineEffect } from '@/components/effects/ParallaxBackground'
 import { ParticleEffects } from '@/components/effects/ParticleEffects'

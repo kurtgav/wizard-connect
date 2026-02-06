@@ -31,7 +31,7 @@ export function ParticleEffects({
 }: ParticleEffectsProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const particlesRef = useRef<Particle[]>([])
-  const animationRef = useRef<number>()
+  const animationRef = useRef<number | undefined>(undefined)
 
   // Convert density to number if it's a string
   const particleDensity = typeof density === 'string' ? parseInt(density, 10) : density

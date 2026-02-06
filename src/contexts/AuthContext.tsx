@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Get initial session
-    auth.getSession().then(({ data: { session } }) => {
+    auth.getSession().then((session) => {
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {

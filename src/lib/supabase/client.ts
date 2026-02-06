@@ -2,12 +2,10 @@
 // SUPABASE CLIENT - BROWSER
 // ============================================
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import type { Database } from '@/types'
+import { supabase } from '../supabase'
 
-export const createClient = () => {
-  return createClientComponentClient<Database>()
-}
+// Re-export the main supabase client for browser use
+export const createClient = () => supabase
 
 // Singleton instance
 let supabaseInstance: ReturnType<typeof createClient> | null = null
