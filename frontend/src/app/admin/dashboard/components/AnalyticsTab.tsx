@@ -89,7 +89,7 @@ export function AnalyticsTab() {
             {/* Header */}
             <div className="bg-white border-4 border-[#1E3A8A] p-6 shadow-[8px_8px_0_#1E3A8A]">
                 <h2 className="text-2xl font-black text-[#1E3A8A] mb-2 flex items-center gap-3">
-                    <PixelIcon name="chart" size={32} />
+                    <PixelIcon name="crystal" size={32} />
                     WIZARD POPULATION ANALYTICS
                 </h2>
                 <p className="font-[family-name:var(--font-vt323)] text-xl text-gray-600">

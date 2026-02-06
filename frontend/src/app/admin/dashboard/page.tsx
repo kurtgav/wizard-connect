@@ -7,6 +7,12 @@ import { Navbar } from '@/components/ui/Navbar'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2 } from 'lucide-react'
 
+// Tab Components
+import { UsersTab } from './components/UsersTab'
+import { AnalyticsTab } from './components/AnalyticsTab'
+import { AIMatchesTab } from './components/AIMatchesTab'
+import { ManualMatchesTab } from './components/ManualMatchesTab'
+
 interface Campaign {
   id: string
   name: string
@@ -36,6 +42,7 @@ const ALLOWED_EMAILS = [
 export default function AdminDashboard() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('campaigns')
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [stats, setStats] = useState<Stats>({
     totalUsers: 0,
@@ -89,6 +96,14 @@ export default function AdminDashboard() {
     setLoading(false)
   }
 
+  const tabs = [
+    { id: 'campaigns', label: 'CAMPAIGNS', icon: 'trophy' },
+    { id: 'ai_matches', label: 'AI MATCHES', icon: 'potion' },
+    { id: 'manual_match', label: 'MANUAL MATCH', icon: 'heart_solid' },
+    { id: 'analytics', label: 'ANALYTICS', icon: 'crystal' },
+    { id: 'users', label: 'TOTAL USERS', icon: 'cap' },
+  ]
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#FFFBEB] flex items-center justify-center">
@@ -101,7 +116,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-[#FFFBEB] p-8 relative overflow-hidden">
+    <main className="min-h-screen bg-[#FFFBEB] p-4 md:p-8 relative overflow-hidden">
       <Navbar />
       {/* Background Grid */}
       <div
@@ -113,67 +128,82 @@ export default function AdminDashboard() {
       />
 
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="mb-12">
-          <h1 className="text-4xl font-black text-[#1E3A8A] mb-2 flex items-center gap-3">
+        <div className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-black text-[#1E3A8A] mb-2 flex items-center gap-3">
             <PixelIcon name="star" size={32} />
             ADMIN DASHBOARD
           </h1>
           <p className="text-gray-600 font-[family-name:var(--font-vt323)] text-xl">Wizard Connect Management Portal</p>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          <StatCard
-            icon="cap"
-            title="Total Users"
-            value={stats.totalUsers}
-          />
-          <StatCard
-            icon="star"
-            title="Active Campaigns"
-            value={stats.activeSurvey}
-          />
-          <StatCard
-            icon="potion"
-            title="Completed Surveys"
-            value={stats.completedSurvey}
-          />
-          <StatCard
-            icon="heart_solid"
-            title="Total Matches"
-            value={stats.totalMatches}
-          />
+        {/* Navigation Tabs */}
+        <div className="flex flex-wrap gap-3 mb-8 border-b-4 border-[#1E3A8A] pb-4">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`
+                px-4 py-2 flex items-center gap-2 border-2 border-[#1E3A8A] font-bold text-xs md:text-sm uppercase shadow-[2px_2px_0_#1E3A8A] transition-all
+                ${activeTab === tab.id
+                  ? 'bg-[#1E3A8A] text-white translate-y-[2px] shadow-none'
+                  : 'bg-white text-[#1E3A8A] hover:-translate-y-1 hover:bg-blue-50'}
+              `}
+            >
+              <PixelIcon name={tab.icon as any} size={16} className={activeTab === tab.id ? 'text-white' : 'text-[#1E3A8A]'} />
+              {tab.label}
+            </button>
+          ))}
         </div>
 
-        {/* Campaigns Section */}
-        <div className="bg-white border-4 border-[#1E3A8A] shadow-[8px_8px_0_#1E3A8A] p-8 relative">
-          {/* Corner Decoration */}
-          <div className="absolute top-2 right-2 w-3 h-3 bg-[#1E3A8A]" />
+        {/* Tab Content */}
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
 
-          <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
-            <h2 className="text-2xl font-bold text-[#1E3A8A] flex items-center gap-3">
-              <PixelIcon name="trophy" size={24} />
-              CAMPAIGNS
-            </h2>
-            <button className="bg-[#FFD700] border-4 border-[#1E3A8A] px-6 py-3 font-[family-name:var(--font-press-start)] text-xs text-[#1E3A8A] shadow-[4px_4px_0_#1E3A8A] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#1E3A8A] transition-all flex items-center gap-2">
-              <span>+ NEW CAMPAIGN</span>
-            </button>
-          </div>
-
-          {campaigns.length === 0 ? (
-            <div className="text-center py-20 bg-gray-50 border-2 border-dashed border-[#1E3A8A]/30 rounded-lg">
-              <div className="mb-4 inline-block opacity-50">
-                <PixelIcon name="crystal_empty" size={64} />
+          {activeTab === 'campaigns' && (
+            <div className="space-y-8">
+              {/* Summary Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <StatCard icon="cap" title="Total Users" value={stats.totalUsers} />
+                <StatCard icon="star" title="Active Campaigns" value={stats.activeSurvey} />
+                <StatCard icon="potion" title="Completed Surveys" value={stats.completedSurvey} />
+                <StatCard icon="heart_solid" title="Total Matches" value={stats.totalMatches} />
               </div>
-              <p className="text-[#1E3A8A] font-medium">No campaigns found. Create one to get started!</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-6">
-              {campaigns.map((campaign) => (
-                <CampaignCard key={campaign.id} campaign={campaign} />
-              ))}
+
+              {/* Campaigns List */}
+              <div className="bg-white border-4 border-[#1E3A8A] shadow-[8px_8px_0_#1E3A8A] p-8 relative">
+                <div className="absolute top-2 right-2 w-3 h-3 bg-[#1E3A8A]" />
+                <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
+                  <h2 className="text-2xl font-bold text-[#1E3A8A] flex items-center gap-3">
+                    <PixelIcon name="trophy" size={24} />
+                    CAMPAIGNS
+                  </h2>
+                  <button className="bg-[#FFD700] border-4 border-[#1E3A8A] px-6 py-3 font-[family-name:var(--font-press-start)] text-xs text-[#1E3A8A] shadow-[4px_4px_0_#1E3A8A] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#1E3A8A] transition-all flex items-center gap-2">
+                    <span>+ NEW CAMPAIGN</span>
+                  </button>
+                </div>
+
+                {campaigns.length === 0 ? (
+                  <div className="text-center py-20 bg-gray-50 border-2 border-dashed border-[#1E3A8A]/30 rounded-lg">
+                    <div className="mb-4 inline-block opacity-50">
+                      <PixelIcon name="crystal_empty" size={64} />
+                    </div>
+                    <p className="text-[#1E3A8A] font-medium">No campaigns found. Create one to get started!</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-6">
+                    {campaigns.map((campaign) => (
+                      <CampaignCard key={campaign.id} campaign={campaign} />
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
+
+          {activeTab === 'ai_matches' && <AIMatchesTab />}
+          {activeTab === 'manual_match' && <ManualMatchesTab />}
+          {activeTab === 'analytics' && <AnalyticsTab />}
+          {activeTab === 'users' && <UsersTab />}
+
         </div>
       </div>
     </main>
@@ -188,8 +218,6 @@ function StatCard({ icon, title, value }: { icon: string, title: string, value: 
         <PixelIcon name={icon as any} size={24} />
         <h3 className="font-bold text-[#1E3A8A] text-sm font-[family-name:var(--font-press-start)] tracking-tighter">{title}</h3>
       </div>
-
-      {/* Value - Centered or bottom left? Screenshot shows minimal info. Let's make it big. */}
       <p className="text-3xl font-black text-[#1E3A8A] font-[family-name:var(--font-vt323)] self-end mt-auto">{value}</p>
     </div>
   )
