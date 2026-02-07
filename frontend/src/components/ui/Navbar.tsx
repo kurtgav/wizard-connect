@@ -86,7 +86,7 @@ export function Navbar() {
 
                     {/* Logo (Optional/Implied) - Keeping it simple or existing logic */}
                     <Link href="/" className="flex items-center gap-3 shrink-0 md:mr-8">
-                        <div className="relative w-10 h-10 md:w-12 md:h-12">
+                        <div className="relative w-[3.5rem] h-[3.5rem] md:w-16 md:h-16">
                             <Image
                                 src="/images/wizardconnect-logo.png"
                                 alt="Logo"
