@@ -39,7 +39,6 @@ export function SurveyForm({ onComplete, existingResponses = {}, isComplete = fa
   const canGoBack = currentStep > 0
   const canGoForward = responses[currentQuestion?.id] !== undefined || !currentQuestion?.required
   const surveyComplete = currentStep >= surveyQuestions.length
-  const surveyComplete = currentStep >= surveyQuestions.length
 
   const saveResponse = (questionId: string, value: any) => {
     const newResponses = { ...responses, [questionId]: value }
@@ -68,22 +67,10 @@ export function SurveyForm({ onComplete, existingResponses = {}, isComplete = fa
       setIsSaving(false)
     }
   }
-  }
 
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1)
-    }
-  }
-
-  const handleComplete = async () => {
-    setIsSaving(true)
-    try {
-      await onComplete?.(responses)
-    } catch (error) {
-      console.error('Error completing survey:', error)
-    } finally {
-      setIsSaving(false)
     }
   }
 
