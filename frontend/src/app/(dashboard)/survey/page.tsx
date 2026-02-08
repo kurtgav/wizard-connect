@@ -46,10 +46,10 @@ export default function SurveyPage() {
       </div>
 
       {/* Info Card - Retro Style */}
-      <div className="pixel-card bg-[var(--retro-blue)] text-white">
+      <div className="pixel-card bg-[var(--retro-blue)] text-black">
         <div className="flex items-center gap-3 mb-4">
           <PixelIcon name="star" size={24} />
-          <h3 className="pixel-font font-bold text-base text-white underline decoration-4 underline-offset-4 decoration-[var(--retro-navy)]">
+          <h3 className="pixel-font font-bold text-base text-black underline decoration-4 underline-offset-4 decoration-[var(--retro-navy)]">
             PRO TIPS
           </h3>
         </div>

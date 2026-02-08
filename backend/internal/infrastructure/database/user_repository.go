@@ -17,8 +17,8 @@ func NewUserRepository(db *Database) *UserRepository {
 
 func (r *UserRepository) Create(ctx context.Context, user *entities.User) error {
 	query := `
-		INSERT INTO users (id, email, first_name, last_name, avatar_url, bio, instagram, phone, contact_preference, visibility, year, major)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+		INSERT INTO users (id, email, first_name, last_name, avatar_url, bio, instagram, phone, contact_preference, visibility, year, major, gender, gender_preference)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 		ON CONFLICT (id) DO UPDATE
 		SET email = EXCLUDED.email,
 		    first_name = EXCLUDED.first_name,
@@ -31,13 +31,15 @@ func (r *UserRepository) Create(ctx context.Context, user *entities.User) error 
 		    visibility = EXCLUDED.visibility,
 		    year = EXCLUDED.year,
 		    major = EXCLUDED.major,
+		    gender = EXCLUDED.gender,
+		    gender_preference = EXCLUDED.gender_preference,
 		    updated_at = NOW()
 	`
 
 	_, err := r.db.Exec(ctx, query,
 		user.ID, user.Email, user.FirstName, user.LastName, user.AvatarURL,
 		user.Bio, user.Instagram, user.Phone, user.ContactPref, user.Visibility,
-		user.Year, user.Major,
+		user.Year, user.Major, user.Gender, user.GenderPreference,
 	)
 
 	return err
@@ -46,7 +48,7 @@ func (r *UserRepository) Create(ctx context.Context, user *entities.User) error 
 func (r *UserRepository) GetByID(ctx context.Context, id string) (*entities.User, error) {
 	query := `
 		SELECT id, email, first_name, last_name, avatar_url, bio, instagram, phone,
-		       contact_preference, visibility, year, major, created_at, updated_at
+		       contact_preference, visibility, year, major, gender, gender_preference, created_at, updated_at
 		FROM users
 		WHERE id = $1
 	`
@@ -55,7 +57,7 @@ func (r *UserRepository) GetByID(ctx context.Context, id string) (*entities.User
 	err := r.db.QueryRow(ctx, query, id).Scan(
 		&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.AvatarURL,
 		&user.Bio, &user.Instagram, &user.Phone, &user.ContactPref, &user.Visibility,
-		&user.Year, &user.Major, &user.CreatedAt, &user.UpdatedAt,
+		&user.Year, &user.Major, &user.Gender, &user.GenderPreference, &user.CreatedAt, &user.UpdatedAt,
 	)
 
 	if err != nil {
@@ -68,7 +70,7 @@ func (r *UserRepository) GetByID(ctx context.Context, id string) (*entities.User
 func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*entities.User, error) {
 	query := `
 		SELECT id, email, first_name, last_name, avatar_url, bio, instagram, phone,
-		       contact_preference, visibility, year, major, created_at, updated_at
+		       contact_preference, visibility, year, major, gender, gender_preference, created_at, updated_at
 		FROM users
 		WHERE email = $1
 	`
@@ -77,7 +79,7 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*entitie
 	err := r.db.QueryRow(ctx, query, email).Scan(
 		&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.AvatarURL,
 		&user.Bio, &user.Instagram, &user.Phone, &user.ContactPref, &user.Visibility,
-		&user.Year, &user.Major, &user.CreatedAt, &user.UpdatedAt,
+		&user.Year, &user.Major, &user.Gender, &user.GenderPreference, &user.CreatedAt, &user.UpdatedAt,
 	)
 
 	if err != nil {
@@ -92,14 +94,15 @@ func (r *UserRepository) Update(ctx context.Context, user *entities.User) error 
 		UPDATE users
 		SET first_name = $2, last_name = $3, avatar_url = $4, bio = $5,
 		    instagram = $6, phone = $7, contact_preference = $8,
-		    visibility = $9, year = $10, major = $11, updated_at = NOW()
+		    visibility = $9, year = $10, major = $11, gender = $12,
+		    gender_preference = $13, updated_at = NOW()
 		WHERE id = $1
 	`
 
 	_, err := r.db.Exec(ctx, query,
 		user.ID, user.FirstName, user.LastName, user.AvatarURL, user.Bio,
 		user.Instagram, user.Phone, user.ContactPref, user.Visibility,
-		user.Year, user.Major,
+		user.Year, user.Major, user.Gender, user.GenderPreference,
 	)
 
 	return err
@@ -114,7 +117,7 @@ func (r *UserRepository) Delete(ctx context.Context, id string) error {
 func (r *UserRepository) List(ctx context.Context, limit, offset int) ([]*entities.User, error) {
 	query := `
 		SELECT id, email, first_name, last_name, avatar_url, bio, instagram, phone,
-		       contact_preference, visibility, year, major, created_at, updated_at
+		       contact_preference, visibility, year, major, gender, gender_preference, created_at, updated_at
 		FROM users
 		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2
@@ -132,7 +135,7 @@ func (r *UserRepository) List(ctx context.Context, limit, offset int) ([]*entiti
 		err := rows.Scan(
 			&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.AvatarURL,
 			&user.Bio, &user.Instagram, &user.Phone, &user.ContactPref, &user.Visibility,
-			&user.Year, &user.Major, &user.CreatedAt, &user.UpdatedAt,
+			&user.Year, &user.Major, &user.Gender, &user.GenderPreference, &user.CreatedAt, &user.UpdatedAt,
 		)
 		if err != nil {
 			return nil, err

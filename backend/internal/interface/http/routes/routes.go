@@ -19,6 +19,7 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 	messageRepo := database.NewMessageRepository(db)
 	conversationRepo := database.NewConversationRepository(db)
 	campaignRepo := database.NewCampaignRepository(db.DB)
+	adminRepo := database.NewAdminRepository(db)
 
 	// Initialize services
 	matchingService := services.NewMatchingService(surveyRepo, crushRepo, matchRepo)
@@ -30,9 +31,11 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 	messageController := controllers.NewMessageController(conversationRepo, messageRepo, userRepo)
 	crushController := controllers.NewCrushController(crushRepo)
 	campaignController := controllers.NewCampaignController(campaignRepo)
+	adminController := controllers.NewAdminController(adminRepo)
 
 	// Initialize auth middleware
 	authMiddleware := middleware.NewAuthMiddleware(cfg.Auth.JWTSecret)
+	adminMiddleware := middleware.NewAdminMiddleware(adminRepo)
 
 	// Public routes
 	public := router.Group("")
@@ -84,7 +87,16 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 
 		// Admin routes (require admin role)
 		admin := protected.Group("/admin")
+		admin.Use(adminMiddleware.RequireAdmin())
 		{
+			// Admin management
+			admins := admin.Group("/admins")
+			{
+				admins.GET("", adminController.ListAdmins)
+				admins.POST("/add", adminController.AddAdmin)
+				admins.POST("/remove", adminController.RemoveAdmin)
+			}
+
 			// Campaign management
 			campaigns := admin.Group("/campaigns")
 			{

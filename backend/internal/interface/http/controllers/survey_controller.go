@@ -34,7 +34,7 @@ func (ctrl *SurveyController) GetSurvey(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"data": &entities.SurveyResponse{
 				UserID:     userID,
-				Responses: make(map[string]interface{}),
+				Responses:  make(map[string]interface{}),
 				Interests:  []string{},
 				Values:     []string{},
 				IsComplete: false,

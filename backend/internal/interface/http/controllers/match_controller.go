@@ -10,9 +10,9 @@ import (
 )
 
 type MatchController struct {
-	matchRepo         *database.MatchRepository
-	surveyRepo        *database.SurveyRepository
-	matchingService   services.MatchingService
+	matchRepo       *database.MatchRepository
+	surveyRepo      *database.SurveyRepository
+	matchingService services.MatchingService
 }
 
 func NewMatchController(

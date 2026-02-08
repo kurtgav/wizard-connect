@@ -31,9 +31,9 @@ type MatchingService interface {
 }
 
 type matchingService struct {
-	surveyRepo  SurveyRepository
-	crushRepo   CrushRepository
-	matchRepo   MatchRepository
+	surveyRepo SurveyRepository
+	crushRepo  CrushRepository
+	matchRepo  MatchRepository
 }
 
 func NewMatchingService(
@@ -52,7 +52,7 @@ func NewMatchingService(
 func (s *matchingService) CalculateCompatibility(ctx context.Context, user1, user2 *entities.SurveyResponse) (float64, error) {
 	score := 0.0
 	weights := map[string]float64{
-		"personality": 0.30,
+		"personality":  0.30,
 		"interests":    0.25,
 		"values":       0.25,
 		"lifestyle":    0.10,
@@ -199,9 +199,9 @@ func (s *matchingService) GenerateMatches(ctx context.Context, userID string, li
 
 	// Calculate compatibility with all other users
 	type matchCandidate struct {
-		userID      string
-		score       float64
-		isMutual    bool
+		userID   string
+		score    float64
+		isMutual bool
 	}
 	var candidates []matchCandidate
 

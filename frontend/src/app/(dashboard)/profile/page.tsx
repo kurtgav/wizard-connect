@@ -2,9 +2,82 @@
 
 import { useState, useRef } from 'react'
 import { PixelIcon, PixelIconName } from '@/components/ui/PixelIcon'
-import { Edit2, Save, X, Mail, Phone, Instagram, Eye, EyeOff, Shield } from 'lucide-react'
+import { Edit2, Save, X, Mail, Phone, Instagram, Eye, EyeOff, Shield, Check, Heart, User, ChevronDown } from 'lucide-react'
+import { LucideIcon } from 'lucide-react'
+
+interface SelectOption {
+  value: string
+  label: string
+  icon: LucideIcon | null
+}
 
 export default function ProfilePage() {
+  const CustomSelect = ({ value, onChange, options }: { value: string, onChange: (val: string) => void, options: SelectOption[] }) => {
+    const isOpen = selectOpenStates[value] || false
+    const setIsOpen = (open: boolean) => setSelectOpenStates(prev => ({ ...prev, [value]: open }))
+
+    const selectedOption = options.find(opt => opt.value === value)
+    const IconComponent = selectedOption?.icon
+
+    return (
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="pixel-input w-full flex items-center justify-between bg-white"
+        >
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            {IconComponent && <IconComponent className="w-5 h-5 text-[var(--retro-navy)] flex-shrink-0" />}
+            <span className="pixel-font-body text-sm text-[var(--retro-navy)] truncate">
+              {selectedOption?.label || 'Select...'}
+            </span>
+          </div>
+          {value && <Check className="w-5 h-5 text-[var(--retro-pink)] flex-shrink-0 ml-2" strokeWidth={3} />}
+          <ChevronDown className={`w-5 h-5 text-[var(--retro-navy)] flex-shrink-0 ml-2 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        </button>
+
+        {isOpen && (
+          <div className="absolute z-50 w-full mt-2 bg-white border-2 border-[var(--retro-navy)] rounded-lg shadow-[4px_4px_0_rgba(0,0,0,0.2)] overflow-hidden animate-in slide-in-from-top-2 duration-200">
+            <div className="max-h-64 overflow-y-auto">
+              {options.map((option) => {
+                const OptIcon = option.icon
+                const isSelected = option.value === value
+
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      onChange(option.value)
+                      setIsOpen(false)
+                    }}
+                    className={`
+                      w-full flex items-center gap-3 px-4 py-3 text-left
+                      transition-all duration-150
+                      ${isSelected
+                        ? 'bg-[var(--retro-yellow)] border-l-4 border-[var(--retro-navy)]'
+                        : 'hover:bg-[var(--retro-blue)]/10 border-l-4 border-transparent'
+                      }
+                    `}
+                  >
+                    {OptIcon && <OptIcon className={`w-5 h-5 flex-shrink-0 ${isSelected ? 'text-[var(--retro-navy)]' : 'text-[var(--retro-navy)] opacity-70'}`} />}
+                    <span className={`pixel-font-body text-sm flex-1 truncate ${isSelected ? 'text-[var(--retro-navy)] font-bold' : 'text-[var(--retro-navy)]'}`}>
+                      {option.label}
+                    </span>
+                    {isSelected && (
+                      <Check className="w-5 h-5 text-[var(--retro-navy)] flex-shrink-0 animate-in zoom-in-95 duration-200" strokeWidth={3} />
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  const [selectOpenStates, setSelectOpenStates] = useState<Record<string, boolean>>({})
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [profile, setProfile] = useState({
     firstName: 'KURT',
@@ -15,6 +88,8 @@ export default function ProfilePage() {
     email: 'kurtgavin.design@gmail.com',
     contactPreference: 'email' as 'email' | 'phone' | 'instagram',
     visibility: 'matches_only' as 'public' | 'matches_only' | 'private',
+    gender: '' as 'male' | 'female' | 'non-binary' | 'prefer_not_to_say' | 'other' | '',
+    genderPreference: 'both' as 'male' | 'female' | 'both',
     avatarUrl: '',
   })
 
@@ -134,41 +209,63 @@ export default function ProfilePage() {
                   </p>
                 </div>
 
-                {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Email */}
-                  <div className="border-2 border-dashed border-[var(--retro-navy)] p-3 flex items-center gap-3">
-                    <div className="w-12 h-12 flex-shrink-0 bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)] flex items-center justify-center">
-                      <Mail className="w-6 h-6 text-[var(--retro-navy)]" />
-                    </div>
-                    <div className="min-w-0 overflow-hidden">
-                      <span className="pixel-font text-[10px] text-[var(--retro-navy)] opacity-60 block mb-0.5 tracking-wider">EMAIL SCROLL</span>
-                      <span className="pixel-font-body font-bold text-sm text-[var(--retro-navy)] truncate block" title={profile.email}>{profile.email}</span>
-                    </div>
-                  </div>
+                 {/* Stats Grid */}
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   {/* Email */}
+                   <div className="border-2 border-dashed border-[var(--retro-navy)] p-3 flex items-center gap-3">
+                     <div className="w-12 h-12 flex-shrink-0 bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)] flex items-center justify-center">
+                       <Mail className="w-6 h-6 text-[var(--retro-navy)]" />
+                     </div>
+                     <div className="min-w-0 overflow-hidden">
+                       <span className="pixel-font text-[10px] text-[var(--retro-navy)] opacity-60 block mb-0.5 tracking-wider">EMAIL SCROLL</span>
+                       <span className="pixel-font-body font-bold text-sm text-[var(--retro-navy)] truncate block" title={profile.email}>{profile.email}</span>
+                     </div>
+                   </div>
 
-                  {/* Instagram */}
-                  <div className="border-2 border-dashed border-[var(--retro-navy)] p-3 flex items-center gap-3">
-                    <div className="w-12 h-12 flex-shrink-0 bg-[var(--retro-pink)] border-2 border-[var(--retro-navy)] flex items-center justify-center">
-                      <Instagram className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="pixel-font text-[10px] text-[var(--retro-navy)] opacity-60 block mb-0.5 tracking-wider">INSTAGRAM</span>
-                      <span className="pixel-font-body font-bold text-sm text-[var(--retro-navy)]">@{profile.instagram || '-'}</span>
-                    </div>
-                  </div>
+                   {/* Instagram */}
+                   <div className="border-2 border-dashed border-[var(--retro-navy)] p-3 flex items-center gap-3">
+                     <div className="w-12 h-12 flex-shrink-0 bg-[var(--retro-pink)] border-2 border-[var(--retro-navy)] flex items-center justify-center">
+                       <Instagram className="w-6 h-6 text-white" />
+                     </div>
+                     <div className="min-w-0">
+                       <span className="pixel-font text-[10px] text-[var(--retro-navy)] opacity-60 block mb-0.5 tracking-wider">INSTAGRAM</span>
+                       <span className="pixel-font-body font-bold text-sm text-[var(--retro-navy)]">@{profile.instagram || '-'}</span>
+                     </div>
+                   </div>
 
-                  {/* Preferred Contact */}
-                  <div className="border-2 border-dashed border-[var(--retro-navy)] p-3 flex items-center gap-3">
-                    <div className="w-12 h-12 flex-shrink-0 bg-[var(--retro-blue)] border-2 border-[var(--retro-navy)] flex items-center justify-center">
-                      <Phone className="w-6 h-6 text-white" />
+                   {/* Preferred Contact */}
+                   <div className="border-2 border-dashed border-[var(--retro-navy)] p-3 flex items-center gap-3">
+                     <div className="w-12 h-12 flex-shrink-0 bg-[var(--retro-blue)] border-2 border-[var(--retro-navy)] flex items-center justify-center">
+                       <Phone className="w-6 h-6 text-white" />
+                     </div>
+                     <div className="min-w-0">
+                       <span className="pixel-font text-[10px] text-[var(--retro-navy)] opacity-60 block mb-0.5 tracking-wider">PREFERRED CONTACT</span>
+                       <span className="pixel-font-body font-bold text-sm text-[var(--retro-navy)] uppercase">{profile.contactPreference}</span>
+                     </div>
+                   </div>
+
+                    {/* Gender */}
+                    <div className="border-2 border-dashed border-[var(--retro-navy)] p-3 flex items-center gap-3">
+                      <div className="w-12 h-12 flex-shrink-0 bg-[var(--retro-pink)] border-2 border-[var(--retro-navy)] flex items-center justify-center">
+                        <PixelIcon name="smiley" size={24} className="text-white" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="pixel-font text-[10px] text-[var(--retro-navy)] opacity-60 block mb-0.5 tracking-wider">GENDER</span>
+                        <span className="pixel-font-body font-bold text-sm text-[var(--retro-navy)] capitalize">{profile.gender || 'Not set'}</span>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <span className="pixel-font text-[10px] text-[var(--retro-navy)] opacity-60 block mb-0.5 tracking-wider">PREFERRED CONTACT</span>
-                      <span className="pixel-font-body font-bold text-sm text-[var(--retro-navy)] uppercase">{profile.contactPreference}</span>
+
+                    {/* Looking For */}
+                    <div className="border-2 border-dashed border-[var(--retro-navy)] p-3 flex items-center gap-3 md:col-span-2">
+                      <div className="w-12 h-12 flex-shrink-0 bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)] flex items-center justify-center">
+                        <PixelIcon name="heart_solid" size={24} className="text-[var(--retro-navy)]" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="pixel-font text-[10px] text-[var(--retro-navy)] opacity-60 block mb-0.5 tracking-wider">LOOKING FOR</span>
+                        <span className="pixel-font-body font-bold text-sm text-[var(--retro-navy)] capitalize">{profile.genderPreference === 'both' ? 'Anyone' : profile.genderPreference}</span>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                 </div>
 
                 {/* Edit Button */}
                 <div className="flex justify-end mt-8">
@@ -226,26 +323,60 @@ export default function ProfilePage() {
                 <PixelIcon name="lock" size={20} />
                 <h3 className="pixel-font text-sm">Privacy Level</h3>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {[
-                  { val: 'public', label: 'Public Server', desc: 'Everyone can see' },
-                  { val: 'matches_only', label: 'Guild Only', desc: 'Matches only' },
-                  { val: 'private', label: 'Offline Mode', desc: 'Hidden' }
-                ].map((option) => (
-                  <label key={option.val} className="flex items-start gap-3 cursor-pointer group">
-                    <div className={`
-                            w-6 h-6 border-2 border-[var(--retro-navy)] bg-white flex items-center justify-center
-                            ${profile.visibility === option.val ? 'bg-[var(--retro-navy)]' : ''}
-                          `}>
-                      {profile.visibility === option.val && <div className="w-2 h-2 bg-white" />}
-                    </div>
-                    <input type="radio" checked={profile.visibility === option.val} onChange={() => setProfile({ ...profile, visibility: option.val as any })} className="hidden" />
-                    <div>
-                      <span className="pixel-font text-xs block">{option.label}</span>
-                      <span className="pixel-font-body text-xs opacity-80">{option.desc}</span>
-                    </div>
-                  </label>
-                ))}
+                  { val: 'public', label: 'Public Server', desc: 'Everyone can see', icon: Eye },
+                  { val: 'matches_only', label: 'Guild Only', desc: 'Matches only', icon: Shield },
+                  { val: 'private', label: 'Offline Mode', desc: 'Hidden', icon: EyeOff }
+                ].map((option) => {
+                  const IconComponent = option.icon
+                  const isSelected = profile.visibility === option.val
+                  return (
+                    <label
+                      key={option.val}
+                      className={`
+                        relative flex items-start gap-4 cursor-pointer group
+                        p-4 border-2 rounded-lg transition-all duration-200
+                        ${isSelected
+                          ? 'bg-[var(--retro-yellow)] border-[var(--retro-navy)] shadow-[4px_4px_0_0_rgba(0,0,0,0.2)]'
+                          : 'bg-white border-[var(--retro-navy)] hover:shadow-[2px_2px_0_0_rgba(0,0,0,0.1)] hover:border-[var(--retro-navy)]'
+                        }
+                      `}
+                    >
+                      <input
+                        type="radio"
+                        checked={isSelected}
+                        onChange={() => setProfile({ ...profile, visibility: option.val as any })}
+                        className="hidden"
+                      />
+                      
+                      {isSelected ? (
+                        <div className="flex-shrink-0 w-8 h-8 bg-[var(--retro-navy)] border-2 border-[var(--retro-navy)] flex items-center justify-center rounded-full shadow-lg animate-in zoom-in-95 duration-200">
+                          <Check className="w-5 h-5 text-white" strokeWidth={3} />
+                        </div>
+                      ) : (
+                        <div className="flex-shrink-0 w-8 h-8 bg-white border-2 border-[var(--retro-navy)] flex items-center justify-center rounded-full group-hover:bg-[var(--retro-blue)] group-hover:border-[var(--retro-navy)] transition-colors">
+                        </div>
+                      )}
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`pixel-font text-xs font-bold ${isSelected ? 'text-[var(--retro-navy)]' : 'text-[var(--retro-navy)]'}`}>
+                            {option.label}
+                          </span>
+                          {isSelected && (
+                            <span className="px-2 py-0.5 bg-[var(--retro-navy)] text-[var(--retro-yellow)] text-[10px] pixel-font font-bold rounded-full animate-in fade-in duration-200">
+                              ACTIVE
+                            </span>
+                          )}
+                        </div>
+                        <span className={`pixel-font-body text-xs block ${isSelected ? 'opacity-100' : 'opacity-80'}`}>
+                          {option.desc}
+                        </span>
+                      </div>
+                    </label>
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -282,23 +413,57 @@ export default function ProfilePage() {
                   <textarea value={profile.bio} onChange={(e) => setProfile({ ...profile, bio: e.target.value })} className="pixel-input w-full h-32 resize-none" maxLength={500} />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="pixel-font text-xs mb-2 block text-[var(--retro-navy)]">Instagram</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-3 text-[var(--text-secondary)]">@</span>
-                      <input type="text" value={profile.instagram} onChange={(e) => setProfile({ ...profile, instagram: e.target.value })} className="pixel-input w-full pl-8" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="pixel-font text-xs mb-2 block text-[var(--retro-navy)]">Instagram</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-3 text-[var(--text-secondary)]">@</span>
+                        <input type="text" value={profile.instagram} onChange={(e) => setProfile({ ...profile, instagram: e.target.value })} className="pixel-input w-full pl-8" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="pixel-font text-xs mb-2 block text-[var(--retro-navy)]">Contact Preference</label>
+                      <CustomSelect
+                        value={profile.contactPreference}
+                        onChange={(val) => setProfile({ ...profile, contactPreference: val as any })}
+                        options={[
+                          { value: 'email', label: 'Email', icon: Mail },
+                          { value: 'phone', label: 'Phone', icon: Phone },
+                          { value: 'instagram', label: 'Instagram', icon: Instagram },
+                        ]}
+                      />
                     </div>
                   </div>
-                  <div>
-                    <label className="pixel-font text-xs mb-2 block text-[var(--retro-navy)]">Contact Preference</label>
-                    <select value={profile.contactPreference} onChange={(e) => setProfile({ ...profile, contactPreference: e.target.value as any })} className="pixel-input w-full">
-                      <option value="email">Email</option>
-                      <option value="phone">Phone</option>
-                      <option value="instagram">Instagram</option>
-                    </select>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="pixel-font text-xs mb-2 block text-[var(--retro-navy)]">Gender</label>
+                      <CustomSelect
+                        value={profile.gender}
+                        onChange={(val) => setProfile({ ...profile, gender: val as any })}
+                        options={[
+                          { value: '', label: 'Select gender', icon: null },
+                          { value: 'male', label: 'Male', icon: null },
+                          { value: 'female', label: 'Female', icon: null },
+                          { value: 'non-binary', label: 'Non-binary', icon: null },
+                          { value: 'prefer_not_to_say', label: 'Prefer not to say', icon: null },
+                          { value: 'other', label: 'Other', icon: null },
+                        ]}
+                      />
+                    </div>
+                    <div>
+                      <label className="pixel-font text-xs mb-2 block text-[var(--retro-navy)]">Looking for</label>
+                      <CustomSelect
+                        value={profile.genderPreference}
+                        onChange={(val) => setProfile({ ...profile, genderPreference: val as any })}
+                        options={[
+                          { value: 'both', label: 'Anyone', icon: Heart },
+                          { value: 'male', label: 'Male', icon: User },
+                          { value: 'female', label: 'Female', icon: User },
+                        ]}
+                      />
+                    </div>
                   </div>
-                </div>
 
                 <div className="flex gap-4 pt-6 mt-8 border-t-2 border-dashed border-[var(--retro-navy)]">
                   <button onClick={handleSave} disabled={isSaving} className="pixel-btn w-full py-4 bg-[var(--retro-yellow)] text-[var(--retro-navy)]">

@@ -46,15 +46,17 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 	}
 
 	var req struct {
-		FirstName        *string `json:"first_name"`
-		LastName         *string `json:"last_name"`
-		Bio              *string `json:"bio"`
-		Instagram        *string `json:"instagram"`
-		Phone            *string `json:"phone"`
+		FirstName         *string `json:"first_name"`
+		LastName          *string `json:"last_name"`
+		Bio               *string `json:"bio"`
+		Instagram         *string `json:"instagram"`
+		Phone             *string `json:"phone"`
 		ContactPreference *string `json:"contact_preference"`
-		Visibility       *string `json:"visibility"`
-		Year             *string `json:"year"`
-		Major            *string `json:"major"`
+		Visibility        *string `json:"visibility"`
+		Year              *string `json:"year"`
+		Major             *string `json:"major"`
+		Gender            *string `json:"gender"`
+		GenderPreference  *string `json:"gender_preference"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -96,6 +98,12 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 	}
 	if req.Major != nil {
 		user.Major = *req.Major
+	}
+	if req.Gender != nil {
+		user.Gender = *req.Gender
+	}
+	if req.GenderPreference != nil {
+		user.GenderPreference = *req.GenderPreference
 	}
 
 	// Save updates
