@@ -504,7 +504,7 @@ export default function ProfilePage() {
                   <div>
                     <label className="pixel-font text-xs mb-2 block text-[var(--retro-navy)]">Instagram</label>
                     <div className="relative">
-                      <span className="absolute left-3 top-3 text-[var(--text-secondary)]">@</span>
+                      <span className="absolute left-3 top-3 text-[var(--text-secondary)]"></span>
                       <input type="text" value={profile.instagram} onChange={(e) => setProfile({ ...profile, instagram: e.target.value })} className="pixel-input w-full pl-8" />
                     </div>
                   </div>
