@@ -97,7 +97,7 @@ func (ctrl *SurveyController) SubmitSurvey(c *gin.Context) {
 	survey.UpdatedAt = now
 
 	if err := ctrl.surveyRepo.CreateOrUpdate(c.Request.Context(), survey); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save survey"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save survey: " + err.Error()})
 		return
 	}
 

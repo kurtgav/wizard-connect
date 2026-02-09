@@ -53,6 +53,7 @@ export interface SurveySubmission {
   interests: string[]
   values: string[]
   lifestyle?: string
+  is_complete?: boolean
 }
 
 // Match Types

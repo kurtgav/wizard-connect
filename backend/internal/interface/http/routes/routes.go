@@ -31,7 +31,7 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 	messageController := controllers.NewMessageController(conversationRepo, messageRepo, userRepo)
 	crushController := controllers.NewCrushController(crushRepo)
 	campaignController := controllers.NewCampaignController(campaignRepo)
-	adminController := controllers.NewAdminController(adminRepo)
+	adminController := controllers.NewAdminController(adminRepo, userRepo)
 
 	// Initialize auth middleware
 	authMiddleware := middleware.NewAuthMiddleware(cfg.Auth.JWTSecret)
@@ -95,6 +95,12 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 				admins.GET("", adminController.ListAdmins)
 				admins.POST("/add", adminController.AddAdmin)
 				admins.POST("/remove", adminController.RemoveAdmin)
+			}
+
+			// User management
+			users := admin.Group("/users")
+			{
+				users.GET("", adminController.GetAllUsers)
 			}
 
 			// Campaign management

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 
 	"wizard-connect/internal/domain/entities"
 )
@@ -19,17 +20,17 @@ func NewSurveyRepository(db *Database) *SurveyRepository {
 func (r *SurveyRepository) CreateOrUpdate(ctx context.Context, survey *entities.SurveyResponse) error {
 	responsesJSON, err := json.Marshal(survey.Responses)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal responses: %w", err)
 	}
 
 	interestsArray, err := json.Marshal(survey.Interests)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal interests: %w", err)
 	}
 
 	valuesArray, err := json.Marshal(survey.Values)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal values: %w", err)
 	}
 
 	query := `
@@ -49,10 +50,14 @@ func (r *SurveyRepository) CreateOrUpdate(ctx context.Context, survey *entities.
 	_, err = r.db.Exec(ctx, query,
 		survey.ID, survey.UserID, responsesJSON, survey.PersonalityType,
 		interestsArray, valuesArray, survey.Lifestyle, survey.IsComplete,
-		survey.CompletedAt, survey.CreatedAt,
+		survey.CompletedAt, survey.CreatedAt, survey.UpdatedAt,
 	)
 
-	return err
+	if err != nil {
+		return fmt.Errorf("failed to execute survey insert/update: %w", err)
+	}
+
+	return nil
 }
 
 func (r *SurveyRepository) GetByUserID(ctx context.Context, userID string) (*entities.SurveyResponse, error) {

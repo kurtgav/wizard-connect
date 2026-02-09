@@ -145,3 +145,34 @@ func (r *UserRepository) List(ctx context.Context, limit, offset int) ([]*entiti
 
 	return users, nil
 }
+
+func (r *UserRepository) ListAll(ctx context.Context) ([]*entities.User, error) {
+	query := `
+		SELECT id, email, first_name, last_name, avatar_url, bio, instagram, phone,
+		       contact_preference, visibility, year, major, gender, gender_preference, created_at, updated_at
+		FROM users
+		ORDER BY created_at DESC
+	`
+
+	rows, err := r.db.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*entities.User
+	for rows.Next() {
+		user := &entities.User{}
+		err := rows.Scan(
+			&user.ID, &user.Email, &user.FirstName, &user.LastName, &user.AvatarURL,
+			&user.Bio, &user.Instagram, &user.Phone, &user.ContactPref, &user.Visibility,
+			&user.Year, &user.Major, &user.Gender, &user.GenderPreference, &user.CreatedAt, &user.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}

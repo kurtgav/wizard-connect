@@ -13,6 +13,7 @@ type UserRepository interface {
 	Update(ctx context.Context, user *entities.User) error
 	Delete(ctx context.Context, id string) error
 	List(ctx context.Context, limit, offset int) ([]*entities.User, error)
+	ListAll(ctx context.Context) ([]*entities.User, error)
 }
 
 type SurveyRepository interface {

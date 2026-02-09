@@ -35,21 +35,22 @@ export default function SurveyPage() {
       // Calculate personality type from responses
       const personalityType = responses.personality_result || ''
       
-      // Calculate interests from responses
+      // Get interests from multi-select questions
       const interests = Object.entries(responses)
-        .filter(([key, value]) => key.startsWith('interest_') && value === true)
-        .map(([key]) => key.replace('interest_', '').toLowerCase())
+        .filter(([key]) => key.startsWith('interests_') && Array.isArray(responses[key]))
+        .flatMap(([key]) => responses[key] as string[])
       
-      // Calculate values from responses
+      // Get values from scale questions
       const values = Object.entries(responses)
-        .filter(([key, value]) => key.startsWith('value_') && value === true)
-        .map(([key]) => key.replace('value_', '').toLowerCase())
+        .filter(([key]) => key.startsWith('values_'))
+        .map(([key]) => key.replace('values_', '').replace('_', ' '))
 
       // Calculate lifestyle from responses
-      let lifestyle = ''
-      if (responses.study_habits === 'study_night') lifestyle = 'Night Owl'
-      else if (responses.study_habits === 'study_day') lifestyle = 'Early Bird'
-      else if (responses.study_habits === 'study_mixed') lifestyle = 'Flexible'
+      let lifestyle = 'Flexible'
+      if (responses.lifestyle_study_habits === 'night_owl') lifestyle = 'Night Owl'
+      else if (responses.lifestyle_study_habits === 'early_bird') lifestyle = 'Early Bird'
+      else if (responses.lifestyle_study_habits === 'last_minute') lifestyle = 'Last Minute'
+      else if (responses.lifestyle_study_habits === 'consistent') lifestyle = 'Consistent'
 
       const submission = {
         responses,

@@ -23,7 +23,7 @@ export function SurveyForm({ onComplete, existingResponses = {}, isComplete = fa
   useEffect(() => {
     if (existingResponses && Object.keys(existingResponses).length > 0) {
       setResponses(existingResponses)
-      
+
       // Find first unanswered question
       const firstUnansweredIndex = surveyQuestions.findIndex(q => !existingResponses[q.id])
       if (firstUnansweredIndex >= 0) {
@@ -85,8 +85,8 @@ export function SurveyForm({ onComplete, existingResponses = {}, isComplete = fa
                 <label
                   key={option.value}
                   className={`flex items-center gap-3 cursor-pointer group pixel-border-thin p-3 transition-all ${checked
-                      ? 'bg-blue-50 border-blue-300 transform scale-[1.01]'
-                      : 'bg-white hover:bg-gray-50'
+                    ? 'bg-blue-50 border-blue-300 transform scale-[1.01]'
+                    : 'bg-white hover:bg-gray-50'
                     }`}
                   style={{
                     boxShadow: checked ? '2px 2px 0 #00D4FF' : 'none'
@@ -119,8 +119,8 @@ export function SurveyForm({ onComplete, existingResponses = {}, isComplete = fa
                 <label
                   key={option.value}
                   className={`flex items-center gap-3 cursor-pointer group pixel-border-thin p-3 transition-all ${checked
-                      ? 'bg-blue-50 border-blue-300 transform scale-[1.01]'
-                      : 'bg-white hover:bg-gray-50'
+                    ? 'bg-blue-50 border-blue-300 transform scale-[1.01]'
+                    : 'bg-white hover:bg-gray-50'
                     }`}
                   style={{
                     boxShadow: checked ? '2px 2px 0 #00D4FF' : 'none'
@@ -156,8 +156,8 @@ export function SurveyForm({ onComplete, existingResponses = {}, isComplete = fa
                 <label
                   key={option.value}
                   className={`flex items-center gap-3 cursor-pointer group pixel-border-thin p-3 transition-all ${checked
-                      ? 'bg-blue-50 border-blue-300 transform scale-[1.01]'
-                      : 'bg-white hover:bg-gray-50'
+                    ? 'bg-blue-50 border-blue-300 transform scale-[1.01]'
+                    : 'bg-white hover:bg-gray-50'
                     }`}
                   style={{
                     boxShadow: checked ? '2px 2px 0 #00D4FF' : 'none'
@@ -358,10 +358,10 @@ export function SurveyForm({ onComplete, existingResponses = {}, isComplete = fa
                 key={question.id}
                 onClick={() => setCurrentStep(index)}
                 className={`w-8 h-8 flex items-center justify-center border-2 font-bold text-xs transition-all pixel-font-heading ${isCurrent
-                    ? 'bg-pink-500 text-white border-pink-700 transform scale-110 shadow-md'
-                    : isCompleted
-                      ? 'bg-blue-100 border-blue-400 text-blue-800'
-                      : 'bg-white border-gray-300 text-gray-400 hover:border-gray-400'
+                  ? 'bg-pink-500 text-white border-pink-700 transform scale-110 shadow-md'
+                  : isCompleted
+                    ? 'bg-blue-100 border-blue-400 text-blue-800'
+                    : 'bg-white border-gray-300 text-gray-400 hover:border-gray-400'
                   }`}
                 style={isCurrent ? { boxShadow: '2px 2px 0 #C2185B' } : {}}
               >

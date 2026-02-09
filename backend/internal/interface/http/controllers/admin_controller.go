@@ -9,6 +9,7 @@ import (
 
 type AdminController struct {
 	adminRepo repositories.AdminRepository
+	userRepo  repositories.UserRepository
 }
 
 type AddAdminRequest struct {
@@ -19,9 +20,13 @@ type RemoveAdminRequest struct {
 	Email string `json:"email" binding:"required,email"`
 }
 
-func NewAdminController(adminRepo repositories.AdminRepository) *AdminController {
+func NewAdminController(
+	adminRepo repositories.AdminRepository,
+	userRepo repositories.UserRepository,
+) *AdminController {
 	return &AdminController{
 		adminRepo: adminRepo,
+		userRepo:  userRepo,
 	}
 }
 
@@ -70,5 +75,18 @@ func (ctrl *AdminController) RemoveAdmin(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Admin removed successfully",
 		"email":   req.Email,
+	})
+}
+
+func (ctrl *AdminController) GetAllUsers(c *gin.Context) {
+	users, err := ctrl.userRepo.ListAll(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch users"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"users": users,
+		"count": len(users),
 	})
 }
