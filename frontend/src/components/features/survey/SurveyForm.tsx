@@ -21,7 +21,20 @@ export function SurveyForm({ onComplete, existingResponses = {}, isComplete = fa
   const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
-    if (existingResponses && Object.keys(existingResponses).length > 0) {
+    // Load from localStorage first
+    const storedResponses = storage.get('survey_responses')
+    if (storedResponses && Object.keys(storedResponses).length > 0) {
+      setResponses(storedResponses)
+
+      // Find first unanswered question
+      const firstUnansweredIndex = surveyQuestions.findIndex(q => !storedResponses[q.id])
+      if (firstUnansweredIndex >= 0) {
+        setCurrentStep(firstUnansweredIndex)
+      } else {
+        setCurrentStep(0)
+      }
+    } else if (existingResponses && Object.keys(existingResponses).length > 0) {
+      // Use existingResponses from prop
       setResponses(existingResponses)
 
       // Find first unanswered question

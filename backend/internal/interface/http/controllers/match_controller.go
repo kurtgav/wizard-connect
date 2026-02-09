@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -104,24 +105,33 @@ func (ctrl *MatchController) GenerateMatches(c *gin.Context) {
 
 	// Check if user has completed survey
 	survey, err := ctrl.surveyRepo.GetByUserID(c.Request.Context(), userID)
-	if err != nil || !survey.IsComplete {
+	if err != nil {
+		fmt.Printf("ERROR: Failed to get user survey: %v\n", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Please complete the survey first"})
+		return
+	}
+	if !survey.IsComplete {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Please complete the survey first"})
 		return
 	}
 
 	// Delete existing matches
-	_ = ctrl.matchRepo.DeleteByUserID(c.Request.Context(), userID)
+	if err := ctrl.matchRepo.DeleteByUserID(c.Request.Context(), userID); err != nil {
+		fmt.Printf("ERROR: Failed to delete existing matches: %v\n", err)
+	}
 
 	// Generate new matches (top 7 matches)
 	matches, err := ctrl.matchingService.GenerateMatches(c.Request.Context(), userID, 7)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate matches"})
+		fmt.Printf("ERROR: Failed to generate matches: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate matches: " + err.Error()})
 		return
 	}
 
 	// Save matches to database
 	for _, match := range matches {
 		if err := ctrl.matchRepo.Create(c.Request.Context(), match); err != nil {
+			fmt.Printf("ERROR: Failed to save match: %v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save matches"})
 			return
 		}

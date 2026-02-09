@@ -11,21 +11,48 @@ export default function SurveyPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [existingSurvey, setExistingSurvey] = useState<SurveyResponse | null>(null)
+  const [surveyResponses, setSurveyResponses] = useState<Record<string, any>>({})
 
   useEffect(() => {
     loadSurveyData()
   }, [])
 
+  // Load survey data from API and restore from localStorage if needed
   const loadSurveyData = async () => {
     try {
       setLoading(true)
       const survey = await apiClient.getSurvey()
       setExistingSurvey(survey)
+
+      // Load saved responses from localStorage
+      const savedResponses = localStorage.getItem('survey_responses')
+      if (savedResponses) {
+        try {
+          const parsed = JSON.parse(savedResponses)
+          setSurveyResponses(parsed)
+        } catch (error) {
+          console.error('Failed to parse saved survey responses:', error)
+        }
+      }
       setLoading(false)
     } catch (error) {
       console.error('Failed to load survey:', error)
       setLoading(false)
     }
+  }
+
+  // Save responses to localStorage whenever they change
+  useEffect(() => {
+    if (Object.keys(surveyResponses).length > 0) {
+      localStorage.setItem('survey_responses', JSON.stringify(surveyResponses))
+    }
+  }, [surveyResponses])
+
+  const handleResponseChange = (key: string, value: any) => {
+    setSurveyResponses(prev => ({
+      ...prev,
+      [key]: value
+    }))
   }
 
   const handleSurveyComplete = async (responses: Record<string, any>) => {
@@ -64,6 +91,9 @@ export default function SurveyPage() {
       console.log('Submitting survey:', submission)
       const result = await apiClient.submitSurvey(submission)
       console.log('Survey save result:', result)
+
+      // Clear saved responses after successful submission
+      localStorage.removeItem('survey_responses')
 
       // Success message and redirect
       alert('Survey completed successfully! Your responses have been saved.')
