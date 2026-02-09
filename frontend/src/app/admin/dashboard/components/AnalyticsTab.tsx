@@ -93,7 +93,7 @@ export function AnalyticsTab() {
                     WIZARD POPULATION ANALYTICS
                 </h2>
                 <p className="font-[family-name:var(--font-vt323)] text-xl text-gray-600">
-                    Real-time data from {data.total} completed surveys.
+                    Real-time data from {data?.total || 0} completed surveys.
                 </p>
             </div>
 

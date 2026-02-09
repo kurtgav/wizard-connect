@@ -7,6 +7,8 @@ import (
 	"fmt"
 
 	"wizard-connect/internal/domain/entities"
+
+	"github.com/lib/pq"
 )
 
 type SurveyRepository struct {
@@ -21,16 +23,6 @@ func (r *SurveyRepository) CreateOrUpdate(ctx context.Context, survey *entities.
 	responsesJSON, err := json.Marshal(survey.Responses)
 	if err != nil {
 		return fmt.Errorf("failed to marshal responses: %w", err)
-	}
-
-	interestsArray, err := json.Marshal(survey.Interests)
-	if err != nil {
-		return fmt.Errorf("failed to marshal interests: %w", err)
-	}
-
-	valuesArray, err := json.Marshal(survey.Values)
-	if err != nil {
-		return fmt.Errorf("failed to marshal values: %w", err)
 	}
 
 	query := `
@@ -49,7 +41,7 @@ func (r *SurveyRepository) CreateOrUpdate(ctx context.Context, survey *entities.
 
 	_, err = r.db.Exec(ctx, query,
 		survey.ID, survey.UserID, responsesJSON, survey.PersonalityType,
-		interestsArray, valuesArray, survey.Lifestyle, survey.IsComplete,
+		pq.Array(survey.Interests), pq.Array(survey.Values), survey.Lifestyle, survey.IsComplete,
 		survey.CompletedAt, survey.CreatedAt, survey.UpdatedAt,
 	)
 
@@ -69,13 +61,11 @@ func (r *SurveyRepository) GetByUserID(ctx context.Context, userID string) (*ent
 	`
 
 	var responsesJSON []byte
-	var interestsJSON []byte
-	var valuesJSON []byte
 
 	survey := &entities.SurveyResponse{}
 	err := r.db.QueryRow(ctx, query, userID).Scan(
 		&survey.ID, &survey.UserID, &responsesJSON, &survey.PersonalityType,
-		&interestsJSON, &valuesJSON, &survey.Lifestyle, &survey.IsComplete,
+		pq.Array(&survey.Interests), pq.Array(&survey.Values), &survey.Lifestyle, &survey.IsComplete,
 		&survey.CompletedAt, &survey.CreatedAt, &survey.UpdatedAt,
 	)
 
@@ -86,10 +76,8 @@ func (r *SurveyRepository) GetByUserID(ctx context.Context, userID string) (*ent
 		return nil, err
 	}
 
-	// Unmarshal JSON fields
+	// Unmarshal JSON responses
 	json.Unmarshal(responsesJSON, &survey.Responses)
-	json.Unmarshal(interestsJSON, &survey.Interests)
-	json.Unmarshal(valuesJSON, &survey.Values)
 
 	return survey, nil
 }
@@ -112,23 +100,19 @@ func (r *SurveyRepository) GetCompletedSurveys(ctx context.Context) ([]*entities
 	var surveys []*entities.SurveyResponse
 	for rows.Next() {
 		var responsesJSON []byte
-		var interestsJSON []byte
-		var valuesJSON []byte
 
 		survey := &entities.SurveyResponse{}
 		err := rows.Scan(
 			&survey.ID, &survey.UserID, &responsesJSON, &survey.PersonalityType,
-			&interestsJSON, &valuesJSON, &survey.Lifestyle, &survey.IsComplete,
+			pq.Array(&survey.Interests), pq.Array(&survey.Values), &survey.Lifestyle, &survey.IsComplete,
 			&survey.CompletedAt, &survey.CreatedAt, &survey.UpdatedAt,
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		// Unmarshal JSON fields
+		// Unmarshal JSON responses
 		json.Unmarshal(responsesJSON, &survey.Responses)
-		json.Unmarshal(interestsJSON, &survey.Interests)
-		json.Unmarshal(valuesJSON, &survey.Values)
 
 		surveys = append(surveys, survey)
 	}

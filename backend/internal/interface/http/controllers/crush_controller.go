@@ -3,11 +3,12 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"wizard-connect/internal/domain/entities"
 	"wizard-connect/internal/infrastructure/database"
 	"wizard-connect/internal/interface/http/middleware"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type CrushController struct {
@@ -56,6 +57,12 @@ func (ctrl *CrushController) SubmitCrushes(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Campaign date enforcement
+	if !database.IsSurveyOpen() {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Crush list submission is not available at this time"})
 		return
 	}
 

@@ -22,7 +22,7 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 	adminRepo := database.NewAdminRepository(db)
 
 	// Initialize services
-	matchingService := services.NewMatchingService(surveyRepo, crushRepo, matchRepo)
+	matchingService := services.NewMatchingService(surveyRepo, crushRepo, matchRepo, userRepo)
 
 	// Initialize controllers
 	userController := controllers.NewUserController(userRepo)
@@ -30,7 +30,7 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 	matchController := controllers.NewMatchController(matchRepo, surveyRepo, matchingService)
 	messageController := controllers.NewMessageController(conversationRepo, messageRepo, userRepo)
 	crushController := controllers.NewCrushController(crushRepo)
-	campaignController := controllers.NewCampaignController(campaignRepo)
+	campaignController := controllers.NewCampaignController(campaignRepo, matchingService, *surveyRepo)
 	adminController := controllers.NewAdminController(adminRepo, userRepo)
 
 	// Initialize auth middleware
@@ -43,6 +43,7 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 		public.GET("/health", func(c *gin.Context) {
 			c.JSON(200, gin.H{"status": "ok", "time": "healthy"})
 		})
+		public.GET("/campaigns/status", campaignController.GetCampaignStatus)
 	}
 
 	// Protected routes (require authentication)

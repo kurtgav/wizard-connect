@@ -6,9 +6,11 @@ import { useRouter } from 'next/navigation'
 import { PixelIcon, PixelIconName } from '@/components/ui/PixelIcon'
 import { apiClient } from '@/lib/api-client'
 import type { SurveyResponse } from '@/types/api'
+import { useCampaign } from '@/contexts/CampaignContext'
 
 export default function SurveyPage() {
   const router = useRouter()
+  const { status, loading: campaignLoading } = useCampaign()
   const [loading, setLoading] = useState(true)
   const [existingSurvey, setExistingSurvey] = useState<SurveyResponse | null>(null)
 
@@ -34,12 +36,12 @@ export default function SurveyPage() {
 
       // Calculate personality type from responses
       const personalityType = responses.personality_result || ''
-      
+
       // Get interests from multi-select questions
       const interests = Object.entries(responses)
         .filter(([key]) => key.startsWith('interests_') && Array.isArray(responses[key]))
         .flatMap(([key]) => responses[key] as string[])
-      
+
       // Get values from scale questions
       const values = Object.entries(responses)
         .filter(([key]) => key.startsWith('values_'))
@@ -92,14 +94,14 @@ export default function SurveyPage() {
       {/* Header Section */}
       <div className="text-center mb-10">
         <h1 className="pixel-font text-3xl md:text-5xl font-bold mb-4 text-[var(--retro-navy)] uppercase tracking-tighter">
-           Wizard<span className="text-[var(--retro-red)]">Match</span> Survey
-         </h1>
-         <div className="inline-block bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)] px-4 py-1 transform -rotate-2 shadow-[4px_4px_0_var(--retro-navy)]">
-           <p className="pixel-font-body font-bold text-[var(--retro-navy)]">
-             FIND YOUR PLAYER 2
-           </p>
-         </div>
-       </div>
+          Wizard<span className="text-[var(--retro-red)]">Match</span> Survey
+        </h1>
+        <div className="inline-block bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)] px-4 py-1 transform -rotate-2 shadow-[4px_4px_0_var(--retro-navy)]">
+          <p className="pixel-font-body font-bold text-[var(--retro-navy)]">
+            FIND YOUR PLAYER 2
+          </p>
+        </div>
+      </div>
 
       {/* Main Form Card */}
       <div className="pixel-card mb-8">
@@ -110,16 +112,38 @@ export default function SurveyPage() {
           <div>
             <h2 className="pixel-font text-xl">Matchmaking Protocol</h2>
             <p className="text-sm font-bold text-gray-500">
-              {existingSurvey?.is_complete ? 'UPDATE PROGRESS' : 'COMPLETE ALL MISSIONS'}
+              {status?.survey_active
+                ? (existingSurvey?.is_complete ? 'UPDATE PROGRESS' : 'COMPLETE ALL MISSIONS')
+                : 'MISSION ARCHIVED'}
             </p>
           </div>
         </div>
 
-        <SurveyForm 
-          onComplete={handleSurveyComplete}
-          existingResponses={existingSurvey?.responses || {}}
-          isComplete={existingSurvey?.is_complete || false}
-        />
+        {status?.survey_active ? (
+          <SurveyForm
+            onComplete={handleSurveyComplete}
+            existingResponses={existingSurvey?.responses || {}}
+            isComplete={existingSurvey?.is_complete || false}
+          />
+        ) : (
+          <div className="py-12 text-center bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
+            <div className="mb-4 inline-block opacity-50 grayscale">
+              <PixelIcon name="lock" size={64} />
+            </div>
+            <h3 className="pixel-font text-xl text-gray-600 mb-2">SURVEY IS CLOSED</h3>
+            <p className="pixel-font-body text-sm text-gray-500 max-w-md mx-auto">
+              The survey period has ended. Matches are currently being generated.
+              Check the countdown above for the reveal!
+            </p>
+            {existingSurvey?.is_complete && (
+              <div className="mt-8 p-4 bg-green-50 border-2 border-green-200 inline-block">
+                <p className="pixel-font-body text-xs text-green-700 font-bold">
+                  ✓ YOUR RESPONSES WERE SUCCESSFULLY SAVED
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Info Card - Retro Style */}

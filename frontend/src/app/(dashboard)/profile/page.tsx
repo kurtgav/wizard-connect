@@ -6,6 +6,8 @@ import { Edit2, Save, X, Mail, Phone, Instagram, Eye, EyeOff, Shield, Check, Hea
 import { LucideIcon } from 'lucide-react'
 import { apiClient } from '@/lib/api-client'
 import type { User, UserProfile } from '@/types/api'
+import { useAuth } from '@/contexts/AuthContext'
+import { useCampaign } from '@/contexts/CampaignContext'
 
 interface SelectOption {
   value: string
@@ -96,18 +98,41 @@ export default function ProfilePage() {
   })
   const [loading, setLoading] = useState(true)
 
+  const { userProfile: contextProfile, loading: authLoading } = useAuth()
+  const { status: campaignStatus } = useCampaign()
+
   // Start in view mode (false), switch to true to edit
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
-  // Load user profile on mount
+  // Load user profile on mount or when context updates
   useEffect(() => {
-    loadUserProfile()
-  }, [])
+    if (contextProfile) {
+      setProfile({
+        firstName: contextProfile.first_name || '',
+        lastName: contextProfile.last_name || '',
+        bio: contextProfile.bio || '',
+        instagram: contextProfile.instagram || '',
+        phone: contextProfile.phone || '',
+        email: contextProfile.email || '',
+        contactPreference: contextProfile.contact_preference || 'email',
+        visibility: contextProfile.visibility || 'matches_only',
+        gender: contextProfile.gender || '',
+        genderPreference: contextProfile.gender_preference || 'both',
+        avatarUrl: contextProfile.avatar_url || '',
+      })
+      setLoading(false)
+    } else if (!authLoading) {
+      // Only fetch if context is done loading but has no profile (e.g. slight sync delay or error)
+      fetchUserProfile()
+    }
+  }, [contextProfile, authLoading])
 
-  const loadUserProfile = async () => {
+  const fetchUserProfile = async () => {
     try {
       setLoading(true)
+      // Check if we already have the profile in context to potential race conditions
+      // But for now, let's just make the fetch safer by ensuring we catch errors
       const user = await apiClient.getProfile()
       setProfile({
         firstName: user.first_name || '',
@@ -124,6 +149,7 @@ export default function ProfilePage() {
       })
     } catch (error) {
       console.error('Failed to load profile:', error)
+      // Don't alert or block UI, just log it. The form will be empty or show partially loaded state if any.
     } finally {
       setLoading(false)
     }
@@ -330,15 +356,27 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Edit Button */}
-                <div className="flex justify-end mt-8">
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="bg-[var(--retro-yellow)] text-[var(--retro-navy)] border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_0_var(--retro-navy)] px-6 py-3 flex items-center gap-3 hover:translate-y-[-2px] hover:shadow-[6px_6px_0_0_var(--retro-navy)] transition-all active:translate-y-[0px] active:shadow-[2px_2px_0_0_var(--retro-navy)] w-full md:w-auto justify-center"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                    <span className="pixel-font text-sm uppercase">EDIT PROFILE</span>
-                  </button>
+                {/* Edit Button or Locked Message */}
+                <div className="flex flex-col items-end mt-8 gap-3">
+                  {campaignStatus?.profile_update_active ? (
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="bg-[var(--retro-yellow)] text-[var(--retro-navy)] border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_0_var(--retro-navy)] px-6 py-3 flex items-center gap-3 hover:translate-y-[-2px] hover:shadow-[6px_6px_0_0_var(--retro-navy)] transition-all active:translate-y-[0px] active:shadow-[2px_2px_0_0_var(--retro-navy)] w-full md:w-auto justify-center"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      <span className="pixel-font text-sm uppercase">EDIT PROFILE</span>
+                    </button>
+                  ) : (
+                    <div className="w-full md:w-auto">
+                      <div className="bg-gray-100 text-gray-500 border-2 border-gray-300 px-6 py-3 flex items-center gap-3 cursor-not-allowed opacity-70">
+                        <Shield className="w-4 h-4" />
+                        <span className="pixel-font text-sm uppercase">PROFILE LOCKED</span>
+                      </div>
+                      <p className="font-[family-name:var(--font-vt323)] text-sm text-gray-500 mt-2 text-right">
+                        Character editing is only available during the profile update window.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
               </div>

@@ -4,10 +4,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"wizard-connect/internal/domain/entities"
 	"wizard-connect/internal/infrastructure/database"
 	"wizard-connect/internal/interface/http/middleware"
+
+	"github.com/gin-gonic/gin"
 )
 
 type SurveyController struct {
@@ -67,6 +68,12 @@ func (ctrl *SurveyController) SubmitSurvey(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Campaign date enforcement
+	if !database.IsSurveyOpen() {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Survey is not open for submissions at this time"})
 		return
 	}
 

@@ -45,12 +45,117 @@ func GetActiveCampaign(ctx context.Context, db *sql.DB) (*ActiveCampaign, error)
 	campaign.ProfileUpdateEndDate = profileUpdateEndDate
 
 	if configJSON != nil {
-		if err := campaign.Config.UnmarshalJSON(configJSON); err != nil {
+		if err := json.Unmarshal(configJSON, &campaign.Config); err != nil {
 			return nil, err
 		}
 	}
 
 	return &campaign, nil
+}
+
+// Global DB instance for helper functions (should be initialized in main)
+var GlobalDB *sql.DB
+
+func IsSurveyOpen() bool {
+	if GlobalDB == nil {
+		return false
+	}
+	status, err := GetCampaignStatus()
+	if err != nil {
+		return false
+	}
+	return status.SurveyActive
+}
+
+func IsProfileUpdatePeriod() bool {
+	if GlobalDB == nil {
+		return false
+	}
+	status, err := GetCampaignStatus()
+	if err != nil {
+		return false
+	}
+	return status.ProfileUpdateActive
+}
+
+func IsMessagingPeriod() bool {
+	if GlobalDB == nil {
+		return false
+	}
+	status, err := GetCampaignStatus()
+	if err != nil {
+		return false
+	}
+	return status.MessagingActive
+}
+
+func IsResultsReleased() bool {
+	if GlobalDB == nil {
+		return false
+	}
+	status, err := GetCampaignStatus()
+	if err != nil {
+		return false
+	}
+	return status.ResultsReleased
+}
+
+type CampaignStatusResponse struct {
+	CampaignID          string    `json:"campaign_id"`
+	CampaignName        string    `json:"campaign_name"`
+	SurveyActive        bool      `json:"survey_active"`
+	ProfileUpdateActive bool      `json:"profile_update_active"`
+	MessagingActive     bool      `json:"messaging_active"`
+	ResultsReleased     bool      `json:"results_released"`
+	SurveyCloseDate     time.Time `json:"survey_close_date"`
+	ResultsReleaseDate  time.Time `json:"results_release_date"`
+	ServerTime          time.Time `json:"server_time"`
+}
+
+func GetCampaignStatus() (*CampaignStatusResponse, error) {
+	if GlobalDB == nil {
+		return nil, sql.ErrConnDone
+	}
+
+	active, err := GetActiveCampaign(context.Background(), GlobalDB)
+	if err != nil {
+		return nil, err
+	}
+
+	if active == nil {
+		return &CampaignStatusResponse{
+			ServerTime: time.Now(),
+		}, nil
+	}
+
+	now := time.Now()
+
+	// Survey is active if current time is between open and close dates
+	surveyActive := now.After(active.SurveyOpenDate) && now.Before(active.SurveyCloseDate)
+
+	// Profile update is active during the specified window
+	profileActive := false
+	if active.ProfileUpdateStartDate != nil && active.ProfileUpdateEndDate != nil {
+		profileActive = now.After(*active.ProfileUpdateStartDate) && now.Before(*active.ProfileUpdateEndDate)
+	}
+
+	// Messaging is active during the profile update window
+	messagingActive := profileActive
+
+	// Results are released after the release date
+	resultsReleased := now.After(active.ResultsReleaseDate)
+
+	return &CampaignStatusResponse{
+		CampaignID:          active.ID,
+		CampaignName:        active.Name,
+		SurveyActive:        surveyActive,
+		ProfileUpdateActive: profileActive,
+		MessagingActive:     messagingActive,
+		ResultsReleased:     resultsReleased,
+		SurveyCloseDate:     active.SurveyCloseDate,
+		ResultsReleaseDate:  active.ResultsReleaseDate,
+		ServerTime:          now,
+	}, nil
 }
 
 type ActiveCampaign struct {

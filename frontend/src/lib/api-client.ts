@@ -106,7 +106,11 @@ class APIClient {
       }
 
       if (isJson) {
-        return await response.json()
+        const json = await response.json()
+        if (json && typeof json === 'object' && 'data' in json) {
+          return json.data as T
+        }
+        return json as T
       }
 
       // Fallback for non-JSON success (rare but possible)
@@ -114,6 +118,9 @@ class APIClient {
 
     } catch (error) {
       console.error(`Request Failed: ${endpoint}`, error)
+      if (!token && endpoint.includes('/users/me')) {
+        console.warn("Request failed and no token was present for /users/me call. This might be a race condition.")
+      }
       if (error instanceof Error) {
         throw error
       }

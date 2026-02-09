@@ -11,10 +11,14 @@ import (
 
 	"wizard-connect/internal/domain/entities"
 	"wizard-connect/internal/domain/repositories"
+	"wizard-connect/internal/domain/services"
+	"wizard-connect/internal/infrastructure/database"
 )
 
 type CampaignController struct {
-	campaignRepo repositories.CampaignRepository
+	campaignRepo    repositories.CampaignRepository
+	matchingService services.MatchingService
+	surveyRepo      database.SurveyRepository
 }
 
 type CreateCampaignRequest struct {
@@ -41,9 +45,15 @@ type UpdateCampaignRequest struct {
 	Config                 map[string]interface{} `json:"config"`
 }
 
-func NewCampaignController(campaignRepo repositories.CampaignRepository) *CampaignController {
+func NewCampaignController(
+	campaignRepo repositories.CampaignRepository,
+	matchingService services.MatchingService,
+	surveyRepo database.SurveyRepository,
+) *CampaignController {
 	return &CampaignController{
-		campaignRepo: campaignRepo,
+		campaignRepo:    campaignRepo,
+		matchingService: matchingService,
+		surveyRepo:      surveyRepo,
 	}
 }
 
@@ -185,23 +195,39 @@ func (c *CampaignController) DeleteCampaign(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Campaign deleted successfully"})
 }
 
-// RunMatchingAlgorithm triggers the matching algorithm for a campaign
+// RunMatchingAlgorithm triggers the matching algorithm for all participants
 func (c *CampaignController) RunMatchingAlgorithm(ctx *gin.Context) {
-	id := ctx.Param("id")
-
-	campaign, err := c.campaignRepo.GetByID(context.Background(), id)
+	// Get all completed surveys
+	surveys, err := c.surveyRepo.GetCompletedSurveys(ctx.Request.Context())
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Campaign not found"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch participants: " + err.Error()})
 		return
 	}
 
-	// TODO: Implement matching algorithm trigger
-	// This would call the Python algorithm service
+	totalParticipants := len(surveys)
+	if totalParticipants == 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "No completed surveys found to match"})
+		return
+	}
+
+	// For each user, generate and save matches
+	go func() {
+		// Use a background context as this might take time
+		bgCtx := context.Background()
+		for _, survey := range surveys {
+			// Generate matches (top 7)
+			matches, err := c.matchingService.GenerateMatches(bgCtx, survey.UserID, 7)
+			if err != nil {
+				continue
+			}
+			_ = matches // Persistent in GenerateMatches via repository
+		}
+	}()
 
 	ctx.JSON(http.StatusAccepted, gin.H{
-		"message":     "Matching algorithm started",
-		"campaign_id": campaign.ID,
-		"status":      "processing",
+		"message":            "Matching algorithm started in background",
+		"total_participants": totalParticipants,
+		"status":             "processing",
 	})
 }
 
@@ -226,4 +252,15 @@ func (c *CampaignController) GetCampaignStatistics(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, stats)
+}
+
+// GetCampaignStatus returns the current campaign status (public)
+func (ctrl *CampaignController) GetCampaignStatus(c *gin.Context) {
+	status, err := database.GetCampaignStatus()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get campaign status"})
+		return
+	}
+
+	c.JSON(http.StatusOK, status)
 }

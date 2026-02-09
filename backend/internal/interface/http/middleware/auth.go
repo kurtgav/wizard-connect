@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"strings"
@@ -10,12 +11,19 @@ import (
 )
 
 type AuthMiddleware struct {
-	jwtSecret string
+	jwtSecret []byte
 }
 
-func NewAuthMiddleware(jwtSecret string) *AuthMiddleware {
+func NewAuthMiddleware(jwtSecretStr string) *AuthMiddleware {
+	secret := []byte(jwtSecretStr)
+
+	// Try to decode as base64 if it looks like it might be
+	if decoded, err := base64.StdEncoding.DecodeString(jwtSecretStr); err == nil && len(decoded) > 0 {
+		secret = decoded
+	}
+
 	return &AuthMiddleware{
-		jwtSecret: jwtSecret,
+		jwtSecret: secret,
 	}
 }
 
@@ -40,10 +48,22 @@ func (m *AuthMiddleware) Authenticate() gin.HandlerFunc {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
-			return []byte(m.jwtSecret), nil
+			return m.jwtSecret, nil
 		})
 
-		if err != nil || !token.Valid {
+		if err != nil {
+			snippet := tokenString
+			if len(snippet) > 10 {
+				snippet = snippet[:10]
+			}
+			fmt.Printf("JWT Auth Error: %v (Token snippet: %s...)\n", err, snippet)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token", "details": err.Error()})
+			c.Abort()
+			return
+		}
+
+		if !token.Valid {
+			fmt.Println("JWT Auth Error: Token is invalid but no error returned")
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			c.Abort()
 			return

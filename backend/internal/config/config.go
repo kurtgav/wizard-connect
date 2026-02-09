@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -88,10 +89,17 @@ func Load() (*Config, error) {
 			RefreshTokenExpiry: 7 * 24 * time.Hour,
 		},
 		CORS: CORSConfig{
-			AllowedOrigins: []string{
-				getEnv("FRONTEND_URL", "http://localhost:3000"),
-				"https://wizard-connect.vercel.app",
-			},
+			AllowedOrigins: func() []string {
+				origins := []string{"https://wizard-connect.vercel.app"}
+				frontendURL := getEnv("FRONTEND_URL", "http://localhost:3000")
+				if frontendURL != "" {
+					parts := strings.Split(frontendURL, ",")
+					for _, p := range parts {
+						origins = append(origins, strings.TrimSpace(p))
+					}
+				}
+				return origins
+			}(),
 			AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 			AllowedHeaders: []string{"Content-Type", "Authorization"},
 		},

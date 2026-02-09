@@ -3,9 +3,10 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"wizard-connect/internal/infrastructure/database"
 	"wizard-connect/internal/interface/http/middleware"
+
+	"github.com/gin-gonic/gin"
 )
 
 type UserController struct {
@@ -61,6 +62,12 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Campaign date enforcement
+	if !database.IsProfileUpdatePeriod() {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Profile updates are not allowed at this time"})
 		return
 	}
 

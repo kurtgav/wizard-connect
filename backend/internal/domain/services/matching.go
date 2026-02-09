@@ -22,6 +22,12 @@ type CrushRepository interface {
 
 type MatchRepository interface {
 	Create(ctx context.Context, match *entities.Match) error
+	DeleteByUserID(ctx context.Context, userID string) error
+}
+
+type UserRepository interface {
+	GetByID(ctx context.Context, id string) (*entities.User, error)
+	ListAll(ctx context.Context) ([]*entities.User, error)
 }
 
 // MatchingService handles compatibility calculations and match generation
@@ -34,17 +40,20 @@ type matchingService struct {
 	surveyRepo SurveyRepository
 	crushRepo  CrushRepository
 	matchRepo  MatchRepository
+	userRepo   UserRepository
 }
 
 func NewMatchingService(
 	surveyRepo SurveyRepository,
 	crushRepo CrushRepository,
 	matchRepo MatchRepository,
+	userRepo UserRepository,
 ) MatchingService {
 	return &matchingService{
 		surveyRepo: surveyRepo,
 		crushRepo:  crushRepo,
 		matchRepo:  matchRepo,
+		userRepo:   userRepo,
 	}
 }
 
@@ -52,18 +61,18 @@ func NewMatchingService(
 func (s *matchingService) CalculateCompatibility(ctx context.Context, user1, user2 *entities.SurveyResponse) (float64, error) {
 	score := 0.0
 	weights := map[string]float64{
-		"personality":  0.30,
-		"interests":    0.25,
-		"values":       0.25,
-		"lifestyle":    0.10,
-		"mutual_crush": 0.10,
+		"personality": 0.30,
+		"interests":   0.20,
+		"values":      0.25,
+		"lifestyle":   0.15,
+		"demographic": 0.10,
 	}
 
 	// Personality compatibility (30%)
 	personalityScore := s.calculatePersonalityMatch(user1.PersonalityType, user2.PersonalityType)
 	score += personalityScore * weights["personality"]
 
-	// Interests overlap (25%)
+	// Interests overlap (20%)
 	interestsScore := s.calculateInterestsOverlap(user1.Interests, user2.Interests)
 	score += interestsScore * weights["interests"]
 
@@ -71,11 +80,15 @@ func (s *matchingService) CalculateCompatibility(ctx context.Context, user1, use
 	valuesScore := s.calculateValuesAlignment(user1.Values, user2.Values)
 	score += valuesScore * weights["values"]
 
-	// Lifestyle compatibility (10%)
+	// Lifestyle compatibility (15%)
 	lifestyleScore := s.calculateLifestyleMatch(user1.Lifestyle, user2.Lifestyle)
 	score += lifestyleScore * weights["lifestyle"]
 
-	// Base score
+	// Demographic compatibility (10%)
+	// Default base
+	demographicScore := 70.0
+	score += demographicScore * weights["demographic"]
+
 	return math.Min(score, 100.0), nil
 }
 
@@ -205,10 +218,26 @@ func (s *matchingService) GenerateMatches(ctx context.Context, userID string, li
 	}
 	var candidates []matchCandidate
 
+	// Fetch all users to get emails for mutual crush detection
+	users, err := s.userRepo.ListAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	userEmailMap := make(map[string]string)
+	for _, u := range users {
+		userEmailMap[u.ID] = u.Email
+	}
+
+	currentUserEmail := userEmailMap[userID]
+
 	for _, survey := range surveys {
 		if survey.UserID == userID {
 			continue
 		}
+
+		// Gender preference filter (Critical)
+		// TODO: Implement gender filter if data is available
 
 		score, err := s.CalculateCompatibility(ctx, userSurvey, survey)
 		if err != nil {
@@ -217,7 +246,21 @@ func (s *matchingService) GenerateMatches(ctx context.Context, userID string, li
 
 		// Check for mutual crush
 		isMutual := false
-		// This would need to query the other user's crushes
+		otherUserCrushes, _ := s.crushRepo.GetByUserID(ctx, survey.UserID)
+		hasCrushOnMe := false
+		for _, c := range otherUserCrushes {
+			if c.CrushEmail == currentUserEmail {
+				hasCrushOnMe = true
+				break
+			}
+		}
+
+		if hasCrushOnMe && crushEmails[userEmailMap[survey.UserID]] {
+			isMutual = true
+			score = math.Min(score*1.2, 100.0) // 20% Boost for mutual crush
+		} else if hasCrushOnMe || crushEmails[userEmailMap[survey.UserID]] {
+			score = math.Min(score*1.1, 100.0) // 10% Boost for one-way crush
+		}
 
 		candidates = append(candidates, matchCandidate{
 			userID:   survey.UserID,
@@ -228,7 +271,7 @@ func (s *matchingService) GenerateMatches(ctx context.Context, userID string, li
 
 	// Sort by compatibility score (descending)
 	sort.Slice(candidates, func(i, j int) bool {
-		// Mutual crushes get priority
+		// Mutual crushes get top priority
 		if candidates[i].isMutual && !candidates[j].isMutual {
 			return true
 		}

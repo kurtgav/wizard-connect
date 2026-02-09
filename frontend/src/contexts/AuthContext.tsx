@@ -31,7 +31,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     auth.getSession().then((session) => {
       setSession(session)
       setUser(session?.user ?? null)
-      if (session?.user) {
+      if (session?.user && session.access_token) {
+        apiClient.setToken(session.access_token)
         loadUserProfile(session.user.id, session.user.email!)
       }
       setLoading(false)
@@ -43,9 +44,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null)
 
       if (event === 'SIGNED_IN' && session?.user) {
+        // Set token for API client immediately
+        if (session.access_token) {
+          apiClient.setToken(session.access_token)
+        }
         await loadUserProfile(session.user.id, session.user.email!)
-        // Set token for API client
-        session.access_token && apiClient.setToken(session.access_token)
       } else if (event === 'SIGNED_OUT') {
         setUserProfile(null)
         apiClient.clearToken()

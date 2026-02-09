@@ -22,6 +22,9 @@ func NewDatabase(connString string) (*Database, error) {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
+	// Initialize global DB for helper functions
+	GlobalDB = db
+
 	return &Database{DB: db}, nil
 }
 
