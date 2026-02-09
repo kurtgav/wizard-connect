@@ -8,6 +8,7 @@ import (
 
 	"wizard-connect/internal/domain/entities"
 
+	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
 
@@ -20,6 +21,11 @@ func NewSurveyRepository(db *Database) *SurveyRepository {
 }
 
 func (r *SurveyRepository) CreateOrUpdate(ctx context.Context, survey *entities.SurveyResponse) error {
+	// Generate UUID if not provided
+	if survey.ID == "" {
+		survey.ID = uuid.New().String()
+	}
+
 	responsesJSON, err := json.Marshal(survey.Responses)
 	if err != nil {
 		return fmt.Errorf("failed to marshal responses: %w", err)

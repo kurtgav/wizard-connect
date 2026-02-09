@@ -70,15 +70,24 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
+      // Store session ID to preserve auth state across redirects
+      // This prevents Chrome from deleting state for intermediate websites
+      const sessionId = crypto.randomUUID()
+      sessionStorage.setItem('auth_session_id', sessionId)
+      sessionStorage.setItem('auth_redirect_after', '/survey')
+
       const { error } = await auth.signInWithGoogle()
 
       if (error) {
         setError(error.message)
         setIsLoading(false)
-      } else {
-        // Success - redirect to survey page
-        router.push('/survey')
       }
+      // Note: Redirect will happen via Supabase OAuth flow
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong')
+      setIsLoading(false)
+    }
+  }
     } catch (err: any) {
       setError(err.message || 'Google sign-in failed')
       setIsLoading(false)
