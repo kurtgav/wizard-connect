@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 
-export default function AuthCallbackConfirm() {
+function AuthCallbackContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -63,5 +63,17 @@ export default function AuthCallbackConfirm() {
         <p className="text-sm text-gray-500 mt-4">This page will redirect automatically.</p>
       </div>
     </div>
+  )
+}
+
+export default function AuthCallbackConfirm() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <AuthCallbackContent />
+    </Suspense>
   )
 }

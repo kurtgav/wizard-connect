@@ -84,11 +84,6 @@ export default function LoginPage() {
       }
       // Note: Redirect will happen via Supabase OAuth flow
     } catch (err: any) {
-      setError(err.message || 'Something went wrong')
-      setIsLoading(false)
-    }
-  }
-    } catch (err: any) {
       setError(err.message || 'Google sign-in failed')
       setIsLoading(false)
     }
