@@ -38,6 +38,11 @@ func main() {
 	}
 	defer db.Close()
 
+	// Run auto-migrations
+	if err := db.AutoMigrate(context.Background()); err != nil {
+		log.Printf("Migration warning: %v", err)
+	}
+
 	// Create Gin router
 	router := gin.New()
 

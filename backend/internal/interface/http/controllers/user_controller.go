@@ -124,7 +124,11 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 	}
 
 	if err := ctrl.userRepo.Update(c.Request.Context(), user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
+		fmt.Printf("DATABASE UPDATE ERROR: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to update profile",
+			"details": err.Error(),
+		})
 		return
 	}
 
