@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 
+	"wizard-connect/internal/domain/entities"
 	"wizard-connect/internal/infrastructure/database"
 	"wizard-connect/internal/interface/http/middleware"
 
@@ -22,6 +23,7 @@ func NewUserController(userRepo *database.UserRepository) *UserController {
 // GetProfile returns the current user's profile
 func (ctrl *UserController) GetProfile(c *gin.Context) {
 	userID, exists := middleware.GetUserID(c)
+	email, _ := middleware.GetUserEmail(c)
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
@@ -29,8 +31,18 @@ func (ctrl *UserController) GetProfile(c *gin.Context) {
 
 	user, err := ctrl.userRepo.GetByID(c.Request.Context(), userID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		return
+		// Auto-Create shell if user exists in Auth but not in our public table
+		newUser := &entities.User{
+			ID:          userID,
+			Email:       email,
+			ContactPref: "email",
+			Visibility:  "matches_only",
+		}
+		if err := ctrl.userRepo.Create(c.Request.Context(), newUser); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to sync user"})
+			return
+		}
+		user = newUser
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -41,6 +53,7 @@ func (ctrl *UserController) GetProfile(c *gin.Context) {
 // UpdateProfile updates the current user's profile
 func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 	userID, exists := middleware.GetUserID(c)
+	email, _ := middleware.GetUserEmail(c)
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
@@ -65,11 +78,20 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	// Get existing user
+	// Get existing user or create if missing
 	user, err := ctrl.userRepo.GetByID(c.Request.Context(), userID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		return
+		user = &entities.User{
+			ID:          userID,
+			Email:       email,
+			ContactPref: "email",
+			Visibility:  "matches_only",
+		}
+		// Create the initial record first
+		if err := ctrl.userRepo.Create(c.Request.Context(), user); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user record"})
+			return
+		}
 	}
 
 	// Update fields if provided
