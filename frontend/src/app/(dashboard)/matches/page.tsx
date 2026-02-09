@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { PixelIcon, PixelIconName } from '@/components/ui/PixelIcon'
 import { apiClient } from '@/lib/api-client'
+import { useRouter } from 'next/navigation'
 
 interface Match {
   id: string
@@ -24,6 +25,7 @@ interface Match {
 }
 
 export default function MatchesPage() {
+  const router = useRouter()
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -55,6 +57,16 @@ export default function MatchesPage() {
       console.error('Failed to generate matches:', error)
       setLoading(false)
       alert('Failed to generate matches')
+    }
+  }
+
+  const handleMessage = async (matchedUserId: string) => {
+    try {
+      await apiClient.createConversation(matchedUserId)
+      router.push('/messages')
+    } catch (error) {
+      console.error('Failed to create conversation:', error)
+      alert('Failed to start conversation')
     }
   }
 
@@ -197,7 +209,10 @@ export default function MatchesPage() {
 
                 {/* Actions */}
                 <div className="grid grid-cols-2 gap-3">
-                  <button className="pixel-btn pixel-btn-primary text-xs py-2">
+                  <button
+                    onClick={() => handleMessage(match.matched_user_id)}
+                    className="pixel-btn pixel-btn-primary text-xs py-2"
+                  >
                     <PixelIcon name="envelope" size={18} className="mr-2" />
                     Message
                   </button>

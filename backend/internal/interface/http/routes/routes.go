@@ -75,6 +75,7 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 		{
 			messages.GET("/conversations", messageController.GetConversations)
 			messages.GET("/conversations/:id", messageController.GetMessages)
+			messages.POST("/conversations", messageController.CreateConversation)
 			messages.POST("/conversations/:id/messages", messageController.SendMessage)
 		}
 

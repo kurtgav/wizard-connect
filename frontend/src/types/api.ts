@@ -16,6 +16,8 @@ export interface User {
   visibility: 'public' | 'matches_only' | 'private'
   year?: string
   major?: string
+  gender?: 'male' | 'female' | 'non-binary' | 'prefer_not_to_say' | 'other'
+  gender_preference?: 'male' | 'female' | 'both'
   created_at: string
   updated_at: string
 }
@@ -30,6 +32,8 @@ export interface UserProfile {
   visibility: 'public' | 'matches_only' | 'private'
   year?: string
   major?: string
+  gender?: 'male' | 'female' | 'non-binary' | 'prefer_not_to_say' | 'other'
+  genderPreference?: 'male' | 'female' | 'both'
 }
 
 // Survey Types
@@ -121,6 +125,10 @@ export interface ConversationWithDetails extends Conversation {
     online?: boolean
   }
   unread_count: number
+}
+
+export interface ConversationData {
+  other_user_id: string
 }
 
 // API Response Types

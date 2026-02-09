@@ -5,76 +5,86 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { PixelIcon, PixelIconName } from '@/components/ui/PixelIcon'
-
-// Mock data for conversations
-const mockConversations = [
-  {
-    id: '1',
-    matchId: '1',
-    name: 'Player One',
-    avatar: '👩‍💻',
-    lastMessage: 'That sounds great! When are you free?',
-    unreadCount: 2,
-    timestamp: '10:30 AM',
-    online: true,
-  },
-  {
-    id: '2',
-    matchId: '2',
-    name: 'Pixel Artist',
-    avatar: '👨‍💻',
-    lastMessage: 'Thanks for the message!',
-    unreadCount: 0,
-    timestamp: 'Yesterday',
-    online: false,
-  },
-]
-
-// Mock messages
-const mockMessages = [
-  {
-    id: '1',
-    senderId: 'other',
-    content: 'Hi! I saw we matched! 😊',
-    timestamp: '10:15 AM',
-  },
-  {
-    id: '2',
-    senderId: 'me',
-    content: 'Hey! Nice to meet you! How are you?',
-    timestamp: '10:18 AM',
-  },
-  {
-    id: '3',
-    senderId: 'other',
-    content: 'I\'m good! Just finished my CS class. What about you?',
-    timestamp: '10:20 AM',
-  },
-  {
-    id: '4',
-    senderId: 'me',
-    content: 'Same! We should grab coffee sometime ☕',
-    timestamp: '10:25 AM',
-  },
-  {
-    id: '5',
-    senderId: 'other',
-    content: 'That sounds great! When are you free?',
-    timestamp: '10:30 AM',
-  },
-]
+import { apiClient } from '@/lib/api-client'
+import type { ConversationWithDetails, Message } from '@/types/api'
 
 export default function MessagesPage() {
-  const [selectedConversation, setSelectedConversation] = useState<typeof mockConversations[0] | null>(mockConversations[0])
+  const [conversations, setConversations] = useState<ConversationWithDetails[]>([])
+  const [selectedConversation, setSelectedConversation] = useState<ConversationWithDetails | null>(null)
+  const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [sendingMessage, setSendingMessage] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string>('')
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      console.log('Sending message:', newMessage)
-      setNewMessage('')
+  // Load conversations on mount
+  useEffect(() => {
+    loadConversations()
+  }, [])
+
+  // Load messages when conversation selected
+  useEffect(() => {
+    if (selectedConversation) {
+      loadMessages(selectedConversation.id)
+    } else {
+      setMessages([])
     }
+  }, [selectedConversation])
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  const loadConversations = async () => {
+    try {
+      setLoading(true)
+      const data = await apiClient.getConversations()
+      setConversations(data || [])
+      if (data && data.length > 0 && !selectedConversation) {
+        setSelectedConversation(data[0])
+      }
+    } catch (error) {
+      console.error('Failed to load conversations:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadMessages = async (conversationId: string) => {
+    try {
+      const response: any = await apiClient.getMessages(conversationId)
+      setMessages(response.data || [])
+      setCurrentUserId(response.current_user_id || '')
+    } catch (error) {
+      console.error('Failed to load messages:', error)
+    }
+  }
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !selectedConversation || sendingMessage) {
+      return
+    }
+
+    try {
+      setSendingMessage(true)
+      const message = await apiClient.sendMessage(selectedConversation.id, { content: newMessage })
+      setMessages([...messages, message])
+      setNewMessage('')
+    } catch (error) {
+      console.error('Failed to send message:', error)
+      alert('Failed to send message')
+    } finally {
+      setSendingMessage(false)
+    }
+  }
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   }
 
   return (
@@ -95,35 +105,60 @@ export default function MessagesPage() {
         {/* Sidebar: User List */}
         <div className="lg:col-span-1 pixel-card flex flex-col p-0 overflow-hidden">
           <div className="p-4 bg-[var(--retro-navy)] text-white border-b-4 border-[var(--retro-navy)]">
-            <h2 className="pixel-font text-sm">Active Players</h2>
+            <h2 className="pixel-font text-sm">
+              Active Players ({conversations.length})
+            </h2>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-[var(--retro-white)]">
-            {mockConversations.map((conv) => (
-              <div
-                key={conv.id}
-                onClick={() => setSelectedConversation(conv)}
-                className={`
-                  cursor-pointer p-3 border-2 transition-all relative
-                  ${selectedConversation?.id === conv.id
-                    ? 'bg-[var(--retro-yellow)] border-[var(--retro-navy)] shadow-[2px_2px_0_0_var(--retro-navy)]'
-                    : 'bg-white border-transparent hover:border-[var(--retro-navy)]'
-                  }
-                `}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-[var(--retro-cream)] border-2 border-[var(--retro-navy)] flex items-center justify-center text-xl">
-                    {conv.avatar}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-center mb-1">
-                      <h3 className="pixel-font text-xs text-[var(--retro-navy)] truncate">{conv.name}</h3>
-                      {conv.online && <div className="w-2 h-2 bg-green-500 border border-[var(--retro-navy)]" />}
+            {loading ? (
+              <div className="text-center py-8 opacity-50">
+                <p className="pixel-font text-sm">LOADING...</p>
+              </div>
+            ) : conversations.length === 0 ? (
+              <div className="text-center py-8 opacity-50">
+                <p className="pixel-font text-sm">NO CONVERSATIONS</p>
+                <p className="pixel-font-body text-xs mt-2">Match with someone to start chatting!</p>
+              </div>
+            ) : (
+              conversations.map((conv) => (
+                <div
+                  key={conv.id}
+                  onClick={() => setSelectedConversation(conv)}
+                  className={`
+                    cursor-pointer p-3 border-2 transition-all relative
+                    ${selectedConversation?.id === conv.id
+                      ? 'bg-[var(--retro-yellow)] border-[var(--retro-navy)] shadow-[2px_2px_0_0_var(--retro-navy)]'
+                      : 'bg-white border-transparent hover:border-[var(--retro-navy)]'
+                    }
+                  `}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[var(--retro-cream)] border-2 border-[var(--retro-navy)] flex items-center justify-center text-xl overflow-hidden">
+                      {conv.other_participant.avatar_url ? (
+                        <img src={conv.other_participant.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <PixelIcon name="smiley" size={32} />
+                      )}
                     </div>
-                    <p className="pixel-font-body text-sm truncate opacity-80">{conv.lastMessage}</p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-center mb-1">
+                        <h3 className="pixel-font text-xs text-[var(--retro-navy)] truncate">
+                          {conv.other_participant.first_name} {conv.other_participant.last_name}
+                        </h3>
+                        {conv.unread_count > 0 && (
+                          <div className="bg-[var(--retro-red)] text-white text-[10px] px-2 py-0.5 rounded-full border border-[var(--retro-navy)]">
+                            {conv.unread_count}
+                          </div>
+                        )}
+                      </div>
+                      <p className="pixel-font-body text-sm truncate opacity-80">
+                        {conv.last_message || 'No messages yet'}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -134,12 +169,20 @@ export default function MessagesPage() {
               {/* Chat Header */}
               <div className="p-4 bg-[var(--retro-blue)] border-b-4 border-[var(--retro-navy)] flex justify-between items-center text-white">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-white border-2 border-[var(--retro-navy)] flex items-center justify-center">
-                    {selectedConversation.avatar}
+                  <div className="w-8 h-8 bg-white border-2 border-[var(--retro-navy)] flex items-center justify-center overflow-hidden">
+                    {selectedConversation.other_participant.avatar_url ? (
+                      <img src={selectedConversation.other_participant.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <PixelIcon name="smiley" size={24} className="text-[var(--retro-navy)]" />
+                    )}
                   </div>
                   <div>
-                    <h3 className="pixel-font text-sm">{selectedConversation.name}</h3>
-                    <p className="pixel-font-body text-xs opacity-90">{selectedConversation.online ? 'Online' : 'Offline'}</p>
+                    <h3 className="pixel-font text-sm">
+                      {selectedConversation.other_participant.first_name} {selectedConversation.other_participant.last_name}
+                    </h3>
+                    <p className="pixel-font-body text-xs opacity-90">
+                      {selectedConversation.other_participant.online ? 'Online' : 'Offline'}
+                    </p>
                   </div>
                 </div>
                 <button className="pixel-btn pixel-btn-secondary px-2 py-1 text-[10px]">
@@ -149,22 +192,35 @@ export default function MessagesPage() {
 
               {/* Messages Area */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[var(--retro-white)]">
-                {mockMessages.map((msg) => (
-                  <div key={msg.id} className={`flex ${msg.senderId === 'me' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`
-                          max-w-[70%] p-3 border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_0_rgba(0,0,0,0.1)]
-                          ${msg.senderId === 'me'
-                        ? 'bg-[var(--retro-navy)] text-white'
-                        : 'bg-[var(--retro-cream)] text-[var(--retro-navy)]'
-                      }
-                       `}>
-                      <p className="pixel-font-body text-sm">{msg.content}</p>
-                      <p className={`text-[10px] mt-1 opacity-60 ${msg.senderId === 'me' ? 'text-right' : 'text-left'}`}>
-                        {msg.timestamp}
-                      </p>
+                {messages.length === 0 ? (
+                  <div className="h-full flex items-center justify-center opacity-50">
+                    <div className="text-center">
+                      <p className="pixel-font text-sm">START THE CONVERSATION</p>
+                      <p className="pixel-font-body text-xs mt-2">Send your first message!</p>
                     </div>
                   </div>
-                ))}
+                ) : (
+                  messages.map((msg) => {
+                    const isMe = msg.sender_id === currentUserId
+                    return (
+                      <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`
+                              max-w-[70%] p-3 border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_0_rgba(0,0,0,0.1)]
+                              ${isMe
+                            ? 'bg-[var(--retro-navy)] text-white'
+                            : 'bg-[var(--retro-cream)] text-[var(--retro-navy)]'
+                          }
+                           `}>
+                          <p className="pixel-font-body text-sm">{msg.content}</p>
+                          <p className={`text-[10px] mt-1 opacity-60 ${isMe ? 'text-right' : 'text-left'}`}>
+                            {formatTime(msg.created_at)}
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+                <div ref={messagesEndRef} />
               </div>
 
               {/* Input Area */}
@@ -176,13 +232,15 @@ export default function MessagesPage() {
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="Type your message..."
                     className="pixel-input flex-1 border-2"
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                    disabled={sendingMessage}
                   />
                   <button
                     onClick={handleSendMessage}
-                    className="pixel-btn px-6"
+                    disabled={sendingMessage || !newMessage.trim()}
+                    className="pixel-btn px-6 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    SEND
+                    {sendingMessage ? '...' : 'SEND'}
                   </button>
                 </div>
               </div>
@@ -191,7 +249,7 @@ export default function MessagesPage() {
             <div className="flex-1 flex items-center justify-center bg-[var(--retro-cream)]">
               <div className="text-center opacity-50">
                 <p className="pixel-font text-[var(--retro-navy)] mb-2">NO SIGNAL...</p>
-                <p className="pixel-font-body">Select a frequency to start transmission</p>
+                <p className="pixel-font-body">Select a conversation to start chatting</p>
               </div>
             </div>
           )}

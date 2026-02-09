@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { PixelIcon, PixelIconName } from '@/components/ui/PixelIcon'
-import { Edit2, Save, X, Mail, Phone, Instagram, Eye, EyeOff, Shield, Check, Heart, User, ChevronDown } from 'lucide-react'
+import { Edit2, Save, X, Mail, Phone, Instagram, Eye, EyeOff, Shield, Check, Heart, User as LucideUser, ChevronDown } from 'lucide-react'
 import { LucideIcon } from 'lucide-react'
+import { apiClient } from '@/lib/api-client'
+import type { User, UserProfile } from '@/types/api'
 
 interface SelectOption {
   value: string
@@ -80,30 +82,78 @@ export default function ProfilePage() {
   const [selectOpenStates, setSelectOpenStates] = useState<Record<string, boolean>>({})
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [profile, setProfile] = useState({
-    firstName: 'KURT',
-    lastName: 'GAVIN',
-    bio: 'Level 1 Wizard seeking a potion master. I love retro games and coffee.',
-    instagram: 'kurt_gavin',
+    firstName: '',
+    lastName: '',
+    bio: '',
+    instagram: '',
     phone: '',
-    email: 'kurtgavin.design@gmail.com',
+    email: '',
     contactPreference: 'email' as 'email' | 'phone' | 'instagram',
     visibility: 'matches_only' as 'public' | 'matches_only' | 'private',
     gender: '' as 'male' | 'female' | 'non-binary' | 'prefer_not_to_say' | 'other' | '',
     genderPreference: 'both' as 'male' | 'female' | 'both',
     avatarUrl: '',
   })
+  const [loading, setLoading] = useState(true)
 
   // Start in view mode (false), switch to true to edit
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
-  const handleSave = () => {
-    setIsSaving(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsSaving(false)
+  // Load user profile on mount
+  useEffect(() => {
+    loadUserProfile()
+  }, [])
+
+  const loadUserProfile = async () => {
+    try {
+      setLoading(true)
+      const user = await apiClient.getProfile()
+      setProfile({
+        firstName: user.first_name || '',
+        lastName: user.last_name || '',
+        bio: user.bio || '',
+        instagram: user.instagram || '',
+        phone: user.phone || '',
+        email: user.email || '',
+        contactPreference: user.contact_preference || 'email',
+        visibility: user.visibility || 'matches_only',
+        gender: user.gender || '',
+        genderPreference: user.gender_preference || 'both',
+        avatarUrl: user.avatar_url || '',
+      })
+    } catch (error) {
+      console.error('Failed to load profile:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true)
+      
+      const updateData: UserProfile = {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        bio: profile.bio,
+        instagram: profile.instagram,
+        phone: profile.phone,
+        contactPreference: profile.contactPreference,
+        visibility: profile.visibility,
+        gender: profile.gender || undefined,
+        genderPreference: profile.genderPreference,
+      }
+
+      await apiClient.updateProfile(updateData)
       setIsEditing(false)
-    }, 1500)
+      alert('Profile updated successfully!')
+    } catch (error) {
+      console.error('Failed to save profile:', error)
+      alert('Failed to save profile. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,6 +174,19 @@ export default function ProfilePage() {
 
   const visibilityInfo = getVisibilityLabel(profile.visibility)
   const VisIcon = visibilityInfo.icon
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="inline-block bg-[var(--retro-yellow)] border-4 border-[var(--retro-navy)] px-6 py-3 mb-4 animate-pulse">
+            <p className="pixel-font text-lg text-[var(--retro-navy)]">LOADING...</p>
+          </div>
+          <p className="pixel-font-body text-sm text-gray-600">Fetching your character sheet...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-6xl mx-auto py-8 px-4">
@@ -458,8 +521,8 @@ export default function ProfilePage() {
                         onChange={(val) => setProfile({ ...profile, genderPreference: val as any })}
                         options={[
                           { value: 'both', label: 'Anyone', icon: Heart },
-                          { value: 'male', label: 'Male', icon: User },
-                          { value: 'female', label: 'Female', icon: User },
+                          { value: 'male', label: 'Male', icon: LucideUser },
+                          { value: 'female', label: 'Female', icon: LucideUser },
                         ]}
                       />
                     </div>

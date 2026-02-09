@@ -10,6 +10,7 @@ import type {
   MatchWithDetails,
   Crush,
   CrushSubmission,
+  Conversation,
   ConversationWithDetails,
   Message,
   SendMessageRequest,
@@ -185,6 +186,10 @@ class APIClient {
 
   async getMessages(conversationId: string): Promise<Message[]> {
     return this.get<Message[]>(`/api/v1/messages/conversations/${conversationId}`)
+  }
+
+  async createConversation(otherUserId: string): Promise<Conversation> {
+    return this.post<Conversation>('/api/v1/messages/conversations', { other_user_id: otherUserId })
   }
 
   async sendMessage(conversationId: string, data: SendMessageRequest): Promise<Message> {

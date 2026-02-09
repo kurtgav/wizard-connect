@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -41,14 +42,20 @@ func (ctrl *MessageController) GetConversations(c *gin.Context) {
 		return
 	}
 
+	type OtherParticipant struct {
+		ID        string `json:"id"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+		AvatarURL string `json:"avatar_url"`
+		Online    bool   `json:"online"`
+	}
+
 	type ConversationWithDetails struct {
-		ID              string `json:"id"`
-		OtherUserID     string `json:"other_user_id"`
-		OtherUserName   string `json:"other_user_name"`
-		OtherUserAvatar string `json:"other_user_avatar"`
-		LastMessage     string `json:"last_message"`
-		UpdatedAt       string `json:"updated_at"`
-		UnreadCount     int    `json:"unread_count"`
+		ID               string           `json:"id"`
+		OtherParticipant OtherParticipant `json:"other_participant"`
+		LastMessage      string           `json:"last_message"`
+		UpdatedAt        string           `json:"updated_at"`
+		UnreadCount      int              `json:"unread_count"`
 	}
 
 	result := make([]ConversationWithDetails, 0, len(conversations))
@@ -63,14 +70,21 @@ func (ctrl *MessageController) GetConversations(c *gin.Context) {
 			continue
 		}
 
+		// Get unread count
+		unreadCount, _ := ctrl.messageRepo.GetUnreadCount(c.Request.Context(), userID)
+
 		result = append(result, ConversationWithDetails{
-			ID:              conv.ID,
-			OtherUserID:     otherUser.ID,
-			OtherUserName:   otherUser.FirstName + " " + otherUser.LastName,
-			OtherUserAvatar: otherUser.AvatarURL,
-			LastMessage:     conv.LastMessage,
-			UpdatedAt:       conv.UpdatedAt.Format("2006-01-02T15:04:05Z"),
-			UnreadCount:     0, // TODO: Calculate from unread messages
+			ID: conv.ID,
+			OtherParticipant: OtherParticipant{
+				ID:        otherUser.ID,
+				FirstName: otherUser.FirstName,
+				LastName:  otherUser.LastName,
+				AvatarURL: otherUser.AvatarURL,
+				Online:    false, // TODO: Implement online status
+			},
+			LastMessage: conv.LastMessage,
+			UpdatedAt:   conv.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+			UnreadCount: unreadCount,
 		})
 	}
 
@@ -81,7 +95,7 @@ func (ctrl *MessageController) GetConversations(c *gin.Context) {
 
 // GetMessages retrieves messages for a specific conversation
 func (ctrl *MessageController) GetMessages(c *gin.Context) {
-	_, exists := middleware.GetUserID(c)
+	userID, exists := middleware.GetUserID(c)
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
@@ -103,8 +117,19 @@ func (ctrl *MessageController) GetMessages(c *gin.Context) {
 		return
 	}
 
+	// Mark messages as read
+	go func() {
+		ctx := context.Background()
+		for _, msg := range messages {
+			if !msg.IsRead && msg.SenderID != userID {
+				_ = ctrl.messageRepo.MarkAsRead(ctx, msg.ID)
+			}
+		}
+	}()
+
 	c.JSON(http.StatusOK, gin.H{
-		"data": messages,
+		"data":            messages,
+		"current_user_id": userID,
 	})
 }
 
@@ -148,8 +173,55 @@ func (ctrl *MessageController) SendMessage(c *gin.Context) {
 		return
 	}
 
+	// Update conversation last message
+	_ = ctrl.conversationRepo.UpdateLastMessage(c.Request.Context(), conversationID, req.Content)
+
 	c.JSON(http.StatusCreated, gin.H{
 		"data":    message,
 		"message": "Message sent successfully",
+	})
+}
+
+// CreateConversation creates a new conversation with another user
+func (ctrl *MessageController) CreateConversation(c *gin.Context) {
+	userID, exists := middleware.GetUserID(c)
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	var req struct {
+		OtherUserID string `json:"other_user_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Check if conversation already exists
+	conv, err := ctrl.conversationRepo.GetByParticipants(c.Request.Context(), userID, req.OtherUserID)
+	if err == nil && conv != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"data":    conv,
+			"message": "Conversation already exists",
+		})
+		return
+	}
+
+	// Create new conversation
+	newConv := &entities.Conversation{
+		Participant1: userID,
+		Participant2: req.OtherUserID,
+	}
+
+	if err := ctrl.conversationRepo.Create(c.Request.Context(), newConv); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create conversation"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"data":    newConv,
+		"message": "Conversation created successfully",
 	})
 }
