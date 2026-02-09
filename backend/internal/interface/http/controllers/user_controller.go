@@ -89,37 +89,37 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 		ctrl.userRepo.Create(c.Request.Context(), user)
 	}
 
-	if req.FirstName != nil {
+	if req.FirstName != nil && *req.FirstName != "" {
 		user.FirstName = *req.FirstName
 	}
-	if req.LastName != nil {
+	if req.LastName != nil && *req.LastName != "" {
 		user.LastName = *req.LastName
 	}
-	if req.Bio != nil {
+	if req.Bio != nil && *req.Bio != "" {
 		user.Bio = *req.Bio
 	}
-	if req.Instagram != nil {
+	if req.Instagram != nil && *req.Instagram != "" {
 		user.Instagram = *req.Instagram
 	}
-	if req.Phone != nil {
+	if req.Phone != nil && *req.Phone != "" {
 		user.Phone = *req.Phone
 	}
-	if req.ContactPreference != nil {
+	if req.ContactPreference != nil && *req.ContactPreference != "" {
 		user.ContactPref = *req.ContactPreference
 	}
-	if req.Visibility != nil {
+	if req.Visibility != nil && *req.Visibility != "" {
 		user.Visibility = *req.Visibility
 	}
-	if req.Year != nil {
+	if req.Year != nil && *req.Year != "" {
 		user.Year = *req.Year
 	}
-	if req.Major != nil {
+	if req.Major != nil && *req.Major != "" {
 		user.Major = *req.Major
 	}
-	if req.Gender != nil {
+	if req.Gender != nil && *req.Gender != "" {
 		user.Gender = *req.Gender
 	}
-	if req.GenderPreference != nil {
+	if req.GenderPreference != nil && *req.GenderPreference != "" {
 		user.GenderPreference = *req.GenderPreference
 	}
 
