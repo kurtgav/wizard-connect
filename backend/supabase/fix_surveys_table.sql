@@ -1,5 +1,5 @@
 -- Fix for missing 'responses' column in surveys table
--- This migration ensures the surveys table has all required columns
+-- This migration ensures that surveys table has all required columns
 
 -- Check if column exists, if not add it
 DO $$
@@ -85,10 +85,10 @@ BEGIN
     END IF;
 END $$;
 
--- Ensure RLS is enabled and policies are in place
+-- Ensure RLS is enabled
 ALTER TABLE public.surveys ENABLE ROW LEVEL SECURITY;
 
--- Drop existing policies if they exist
+-- Drop ALL existing policies if they exist
 DROP POLICY IF EXISTS "Users can view their own survey" ON public.surveys;
 DROP POLICY IF EXISTS "Users can create/update their own survey" ON public.surveys;
 
@@ -97,11 +97,11 @@ CREATE POLICY "Users can view their own survey"
     ON public.surveys FOR SELECT
     USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can create/update their own survey"
+CREATE POLICY "Users can create their own survey"
     ON public.surveys FOR INSERT
     WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can create/update their own survey"
+CREATE POLICY "Users can update their own survey"
     ON public.surveys FOR UPDATE
     USING (auth.uid() = user_id)
     WITH CHECK (auth.uid() = user_id);
