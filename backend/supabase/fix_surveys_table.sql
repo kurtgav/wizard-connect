@@ -85,12 +85,17 @@ BEGIN
     END IF;
 END $$;
 
+-- Drop ALL policies on surveys table (ignore if they don't exist)
+DO $$
+BEGIN
+    EXECUTE 'DROP POLICY IF EXISTS "Users can view their own survey" ON public.surveys';
+    EXECUTE 'DROP POLICY IF EXISTS "Users can create/update their own survey" ON public.surveys';
+    EXECUTE 'DROP POLICY IF EXISTS "Users can create their own survey" ON public.surveys';
+    EXECUTE 'DROP POLICY IF EXISTS "Users can update their own survey" ON public.surveys';
+END $$;
+
 -- Ensure RLS is enabled
 ALTER TABLE public.surveys ENABLE ROW LEVEL SECURITY;
-
--- Drop ALL existing policies if they exist
-DROP POLICY IF EXISTS "Users can view their own survey" ON public.surveys;
-DROP POLICY IF EXISTS "Users can create/update their own survey" ON public.surveys;
 
 -- Create new policies
 CREATE POLICY "Users can view their own survey"
