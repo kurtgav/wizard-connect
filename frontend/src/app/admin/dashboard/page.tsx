@@ -75,25 +75,29 @@ export default function AdminDashboard() {
   }, [router])
 
   const fetchDashboardData = async (supabase: any) => {
-    const [campaignsResult, usersResult, surveysResult, matchesResult] = await Promise.all([
-      supabase.from('campaigns').select('*').order('created_at', { ascending: false }),
-      supabase.from('users').select('id', { count: 'exact', head: true }),
-      supabase.from('surveys').select('id', { count: 'exact', head: true }).eq('is_complete', true),
-      supabase.from('matches').select('id', { count: 'exact', head: true }),
-    ])
+    try {
+      const [campaignsResult, usersResult, surveysResult, matchesResult] = await Promise.all([
+        supabase.from('campaigns').select('*').order('created_at', { ascending: false }),
+        supabase.from('users').select('id', { count: 'exact', head: true }),
+        supabase.from('surveys').select('id', { count: 'exact', head: true }).eq('is_complete', true),
+        supabase.from('matches').select('id', { count: 'exact', head: true }),
+      ])
 
-    if (campaignsResult.data) {
-      setCampaigns(campaignsResult.data)
+      if (campaignsResult.data) {
+        setCampaigns(campaignsResult.data)
+      }
+
+      setStats({
+        totalUsers: usersResult.count || 0,
+        completedSurvey: surveysResult.count || 0,
+        totalMatches: matchesResult.count || 0,
+        activeSurvey: (campaignsResult.data || []).filter((c: any) => c.is_active).length,
+      })
+    } catch (error) {
+      console.error('Dashboard fetch error:', error)
+    } finally {
+      setLoading(false)
     }
-
-    setStats({
-      totalUsers: usersResult.count || 0,
-      completedSurvey: surveysResult.count || 0,
-      totalMatches: matchesResult.count || 0,
-      activeSurvey: campaignsResult.data?.filter((c: any) => c.is_active).length || 0,
-    })
-
-    setLoading(false)
   }
 
   const tabs = [

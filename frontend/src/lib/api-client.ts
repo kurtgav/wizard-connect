@@ -86,15 +86,34 @@ class APIClient {
         headers,
       })
 
+      const contentType = response.headers.get('content-type')
+      const isJson = contentType && contentType.includes('application/json')
+
       if (!response.ok) {
-        const error = await response.json().catch(() => ({
-          error: response.statusText || 'An error occurred',
-        }))
-        throw new Error(error.error || error.message || 'Request failed')
+        if (isJson) {
+          const error = await response.json().catch(() => ({ error: 'Unknown JSON error' }))
+          console.error(`API Error (${response.status} - ${endpoint}):`, error)
+          throw new Error(error.error || error.message || `Request failed with status ${response.status}`)
+        } else {
+          const text = await response.text()
+          console.error(`API Error (${response.status} - ${endpoint}):`, text.slice(0, 500))
+          throw new Error(`Server Error: ${response.status} ${response.statusText}. Check console for details.`)
+        }
       }
 
-      return await response.json()
+      if (response.status === 204) {
+        return {} as T
+      }
+
+      if (isJson) {
+        return await response.json()
+      }
+
+      // Fallback for non-JSON success (rare but possible)
+      return (await response.text()) as unknown as T
+
     } catch (error) {
+      console.error(`Request Failed: ${endpoint}`, error)
       if (error instanceof Error) {
         throw error
       }
