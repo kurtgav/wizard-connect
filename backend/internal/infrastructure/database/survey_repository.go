@@ -35,19 +35,19 @@ func (r *SurveyRepository) CreateOrUpdate(ctx context.Context, survey *entities.
 		survey.Values = []string{}
 	}
 
-	// Try to check if survey exists first
-	// If the table schema is wrong, we'll get an error
+	// Check if survey exists
 	existing, checkErr := r.GetByUserID(ctx, survey.UserID)
 
+	// Marshal responses once
+	responsesJSON, err := json.Marshal(survey.Responses)
+	if err != nil {
+		return fmt.Errorf("failed to marshal responses: %w", err)
+	}
+
+	// If survey exists, update it
 	if checkErr == nil && existing != nil {
-		// Update existing survey
 		survey.ID = existing.ID
 		survey.CreatedAt = existing.CreatedAt
-
-		responsesJSON, err := json.Marshal(survey.Responses)
-		if err != nil {
-			return fmt.Errorf("failed to marshal responses: %w", err)
-		}
 
 		query := `
 			UPDATE surveys
@@ -72,24 +72,13 @@ func (r *SurveyRepository) CreateOrUpdate(ctx context.Context, survey *entities.
 		if err != nil {
 			return fmt.Errorf("failed to execute survey update: %w", err)
 		}
-	} else {
-		// Insert new survey - check if it's a "not found" error or a schema error
-		if checkErr != sql.ErrNoRows {
-			// It's not a "no rows" error, likely a schema issue
-			// Try to insert anyway as new survey
-			return fmt.Errorf("database schema issue detected: %w. Please run fix_surveys_table.sql migration", checkErr)
-		}
-
+	} else if checkErr == nil || checkErr == sql.ErrNoRows {
+		// Insert new survey (no existing survey found)
 		now := time.Now()
 		survey.CreatedAt = now
 		survey.UpdatedAt = now
 		if survey.IsComplete {
 			survey.CompletedAt = now
-		}
-
-		responsesJSON, err := json.Marshal(survey.Responses)
-		if err != nil {
-			return fmt.Errorf("failed to marshal responses: %w", err)
 		}
 
 		query := `
@@ -104,8 +93,11 @@ func (r *SurveyRepository) CreateOrUpdate(ctx context.Context, survey *entities.
 		)
 
 		if err != nil {
-			return fmt.Errorf("failed to execute survey insert: %w. Please run fix_surveys_table.sql migration", err)
+			return fmt.Errorf("failed to execute survey insert: %w", err)
 		}
+	} else {
+		// Real error - return it
+		return fmt.Errorf("failed to check existing survey: %w", checkErr)
 	}
 
 	return nil
