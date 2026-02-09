@@ -41,17 +41,11 @@ func (ctrl *UserController) GetProfile(c *gin.Context) {
 			Gender:           "prefer_not_to_say",
 			GenderPreference: "both",
 		}
-		if err := ctrl.userRepo.Create(c.Request.Context(), newUser); err != nil {
-			fmt.Printf("DATABASE SYNC ERROR: %v\n", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to sync user"})
-			return
-		}
+		ctrl.userRepo.Create(c.Request.Context(), newUser)
 		user = newUser
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"data": user,
-	})
+	c.JSON(http.StatusOK, gin.H{"data": user})
 }
 
 // UpdateProfile updates the current user's profile
@@ -78,11 +72,10 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
 		return
 	}
 
-	// Get existing user or create if missing
 	user, err := ctrl.userRepo.GetByID(c.Request.Context(), userID)
 	if err != nil {
 		user = &entities.User{
@@ -93,15 +86,9 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 			Gender:           "prefer_not_to_say",
 			GenderPreference: "both",
 		}
-		// Create the initial record first
-		if err := ctrl.userRepo.Create(c.Request.Context(), user); err != nil {
-			fmt.Printf("DATABASE CREATE ERROR: %v\n", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user record"})
-			return
-		}
+		ctrl.userRepo.Create(c.Request.Context(), user)
 	}
 
-	// Update fields if provided
 	if req.FirstName != nil {
 		user.FirstName = *req.FirstName
 	}
@@ -136,17 +123,12 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 		user.GenderPreference = *req.GenderPreference
 	}
 
-	// Save updates
 	if err := ctrl.userRepo.Update(c.Request.Context(), user); err != nil {
-		fmt.Printf("DATABASE UPDATE ERROR: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile", "details": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"data":    user,
-		"message": "Profile updated successfully",
-	})
+	c.JSON(http.StatusOK, gin.H{"data": user, "message": "Profile updated successfully"})
 }
 func (ctrl *UserController) logDBError(op string, err error) {
 	fmt.Printf("DATABASE ERROR [%s]: %v\n", op, err)
