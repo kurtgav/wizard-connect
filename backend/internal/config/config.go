@@ -90,12 +90,20 @@ func Load() (*Config, error) {
 		},
 		CORS: CORSConfig{
 			AllowedOrigins: func() []string {
-				origins := []string{"https://wizard-connect.vercel.app"}
-				frontendURL := getEnv("FRONTEND_URL", "http://localhost:3000")
+				origins := []string{
+					"https://wizard-connect.vercel.app",
+					"https://wizardconnect.vercel.app",
+				}
+				frontendURL := getEnv("FRONTEND_URL", "")
 				if frontendURL != "" {
 					parts := strings.Split(frontendURL, ",")
 					for _, p := range parts {
-						origins = append(origins, strings.TrimSpace(p))
+						// Trim spaces and trailing slashes
+						origin := strings.TrimSpace(p)
+						origin = strings.TrimSuffix(origin, "/")
+						if origin != "" {
+							origins = append(origins, origin)
+						}
 					}
 				}
 				return origins
