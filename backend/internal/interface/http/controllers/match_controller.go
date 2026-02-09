@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
 	"wizard-connect/internal/domain/services"
 	"wizard-connect/internal/infrastructure/database"
@@ -28,7 +29,29 @@ func NewMatchController(
 	}
 }
 
-// GetMatches retrieves the user's matches
+// Helper types for API response transformation
+type MatchedUserDetails struct {
+	Email     string `json:"email"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	AvatarURL string `json:"avatar_url"`
+	Bio       string `json:"bio"`
+	Year      string `json:"year"`
+	Major     string `json:"major"`
+}
+
+type APIResponseMatch struct {
+	ID                 string              `json:"id"`
+	UserID             string              `json:"user_id"`
+	MatchedUserID      string              `json:"matched_user_id"`
+	CompatibilityScore float64             `json:"compatibility_score"`
+	Rank               int                 `json:"rank"`
+	IsMutualCrush      bool                `json:"is_mutual_crush"`
+	CreatedAt          string              `json:"created_at"`
+	MatchedUser        *MatchedUserDetails `json:"matched_user"`
+}
+
+// GetMatches retrieves user's matches
 func (ctrl *MatchController) GetMatches(c *gin.Context) {
 	userID, exists := middleware.GetUserID(c)
 	if !exists {
@@ -42,13 +65,36 @@ func (ctrl *MatchController) GetMatches(c *gin.Context) {
 		return
 	}
 
+	// Transform to match frontend expected structure with nested matched_user
+	apiMatches := make([]APIResponseMatch, len(matches))
+	for i, m := range matches {
+		apiMatches[i] = APIResponseMatch{
+			ID:                 m.ID,
+			UserID:             m.UserID,
+			MatchedUserID:      m.MatchedUserID,
+			CompatibilityScore: m.CompatibilityScore,
+			Rank:               m.Rank,
+			IsMutualCrush:      m.IsMutualCrush,
+			CreatedAt:          m.CreatedAt.Format(time.RFC3339),
+			MatchedUser: &MatchedUserDetails{
+				Email:     m.MatchedEmail,
+				FirstName: m.FirstName,
+				LastName:  m.LastName,
+				AvatarURL: m.AvatarURL,
+				Bio:       m.Bio,
+				Year:      m.Year,
+				Major:     m.Major,
+			},
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"data":             matches,
+		"data":             apiMatches,
 		"results_released": true,
 	})
 }
 
-// GenerateMatches creates new matches for the user
+// GenerateMatches creates new matches for user
 func (ctrl *MatchController) GenerateMatches(c *gin.Context) {
 	userID, exists := middleware.GetUserID(c)
 	if !exists {
