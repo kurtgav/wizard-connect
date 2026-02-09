@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"wizard-connect/internal/domain/entities"
@@ -33,12 +34,15 @@ func (ctrl *UserController) GetProfile(c *gin.Context) {
 	if err != nil {
 		// Auto-Create shell if user exists in Auth but not in our public table
 		newUser := &entities.User{
-			ID:          userID,
-			Email:       email,
-			ContactPref: "email",
-			Visibility:  "matches_only",
+			ID:               userID,
+			Email:            email,
+			ContactPref:      "email",
+			Visibility:       "matches_only",
+			Gender:           "prefer_not_to_say",
+			GenderPreference: "both",
 		}
 		if err := ctrl.userRepo.Create(c.Request.Context(), newUser); err != nil {
+			fmt.Printf("DATABASE SYNC ERROR: %v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to sync user"})
 			return
 		}
@@ -82,13 +86,16 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 	user, err := ctrl.userRepo.GetByID(c.Request.Context(), userID)
 	if err != nil {
 		user = &entities.User{
-			ID:          userID,
-			Email:       email,
-			ContactPref: "email",
-			Visibility:  "matches_only",
+			ID:               userID,
+			Email:            email,
+			ContactPref:      "email",
+			Visibility:       "matches_only",
+			Gender:           "prefer_not_to_say",
+			GenderPreference: "both",
 		}
 		// Create the initial record first
 		if err := ctrl.userRepo.Create(c.Request.Context(), user); err != nil {
+			fmt.Printf("DATABASE CREATE ERROR: %v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user record"})
 			return
 		}
@@ -131,7 +138,8 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 
 	// Save updates
 	if err := ctrl.userRepo.Update(c.Request.Context(), user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
+		fmt.Printf("DATABASE UPDATE ERROR: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile", "details": err.Error()})
 		return
 	}
 
@@ -139,4 +147,7 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 		"data":    user,
 		"message": "Profile updated successfully",
 	})
+}
+func (ctrl *UserController) logDBError(op string, err error) {
+	fmt.Printf("DATABASE ERROR [%s]: %v\n", op, err)
 }
