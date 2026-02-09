@@ -24,14 +24,19 @@ func NewUserController(userRepo *database.UserRepository) *UserController {
 // GetProfile returns the current user's profile
 func (ctrl *UserController) GetProfile(c *gin.Context) {
 	userID, exists := middleware.GetUserID(c)
-	email, _ := middleware.GetUserEmail(c)
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 		return
 	}
 
+	email, _ := middleware.GetUserEmail(c)
+
+	fmt.Printf("DEBUG: Fetching profile for userID=%s, email=%s\n", userID, email)
+
 	user, err := ctrl.userRepo.GetByID(c.Request.Context(), userID)
 	if err != nil {
+		fmt.Printf("DEBUG: User not found in database, creating shell user. Error: %v\n", err)
+
 		// Auto-Create shell if user exists in Auth but not in our public table
 		newUser := &entities.User{
 			ID:               userID,
@@ -41,8 +46,18 @@ func (ctrl *UserController) GetProfile(c *gin.Context) {
 			Gender:           "prefer_not_to_say",
 			GenderPreference: "both",
 		}
-		ctrl.userRepo.Create(c.Request.Context(), newUser)
+
+		createErr := ctrl.userRepo.Create(c.Request.Context(), newUser)
+		if createErr != nil {
+			fmt.Printf("ERROR: Failed to create shell user: %v\n", createErr)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user profile"})
+			return
+		}
+
+		fmt.Printf("DEBUG: Shell user created successfully: %+v\n", newUser)
 		user = newUser
+	} else {
+		fmt.Printf("DEBUG: User found in database: %+v\n", user)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"data": user})
@@ -76,8 +91,11 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 		return
 	}
 
+	fmt.Printf("DEBUG: Updating profile for userID=%s, email=%s\n", userID, email)
+
 	user, err := ctrl.userRepo.GetByID(c.Request.Context(), userID)
 	if err != nil {
+		fmt.Printf("DEBUG: User not found in database, creating shell user for update. Error: %v\n", err)
 		user = &entities.User{
 			ID:               userID,
 			Email:            email,
@@ -86,7 +104,15 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 			Gender:           "prefer_not_to_say",
 			GenderPreference: "both",
 		}
-		ctrl.userRepo.Create(c.Request.Context(), user)
+
+		createErr := ctrl.userRepo.Create(c.Request.Context(), user)
+		if createErr != nil {
+			fmt.Printf("ERROR: Failed to create shell user: %v\n", createErr)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user profile"})
+			return
+		}
+
+		fmt.Printf("DEBUG: Shell user created successfully: %+v\n", user)
 	}
 
 	if req.FirstName != nil && *req.FirstName != "" {
@@ -123,6 +149,8 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 		user.GenderPreference = *req.GenderPreference
 	}
 
+	fmt.Printf("DEBUG: Updating user with data: %+v\n", user)
+
 	if err := ctrl.userRepo.Update(c.Request.Context(), user); err != nil {
 		fmt.Printf("DATABASE UPDATE ERROR: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -132,8 +160,7 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 		return
 	}
 
+	fmt.Printf("DEBUG: User profile updated successfully\n")
+
 	c.JSON(http.StatusOK, gin.H{"data": user, "message": "Profile updated successfully"})
-}
-func (ctrl *UserController) logDBError(op string, err error) {
-	fmt.Printf("DATABASE ERROR [%s]: %v\n", op, err)
 }
