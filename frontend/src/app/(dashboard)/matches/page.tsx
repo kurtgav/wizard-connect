@@ -215,7 +215,10 @@ export default function MatchesPage() {
                     <PixelIcon name="envelope" size={18} className="mr-2" />
                     Message
                   </button>
-                  <button className="pixel-btn pixel-btn-secondary text-xs py-2">
+                  <button
+                    onClick={() => router.push(`/profile/${match.matched_user_id}`)}
+                    className="pixel-btn pixel-btn-secondary text-xs py-2"
+                  >
                     <PixelIcon name="smiley" size={18} className="mr-2" />
                     Profile
                   </button>

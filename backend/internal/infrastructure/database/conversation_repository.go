@@ -14,6 +14,11 @@ func NewConversationRepository(db *Database) *ConversationRepository {
 }
 
 func (r *ConversationRepository) Create(ctx context.Context, conv *entities.Conversation) error {
+	// Ensure consistent ordering (participant1 < participant2) to satisfy CHECK constraint
+	if conv.Participant1 > conv.Participant2 {
+		conv.Participant1, conv.Participant2 = conv.Participant2, conv.Participant1
+	}
+
 	query := `
 		INSERT INTO conversations (participant1, participant2)
 		VALUES ($1, $2)
@@ -35,7 +40,7 @@ func (r *ConversationRepository) GetByParticipants(ctx context.Context, particip
 	}
 
 	query := `
-		SELECT id, participant1, participant2, last_message, updated_at, created_at
+		SELECT id, participant1, participant2, COALESCE(last_message, '') as last_message, updated_at, created_at
 		FROM conversations
 		WHERE participant1 = $1 AND participant2 = $2
 	`
@@ -55,7 +60,7 @@ func (r *ConversationRepository) GetByParticipants(ctx context.Context, particip
 
 func (r *ConversationRepository) GetByUserID(ctx context.Context, userID string) ([]*entities.Conversation, error) {
 	query := `
-		SELECT id, participant1, participant2, last_message, updated_at, created_at
+		SELECT id, participant1, participant2, COALESCE(last_message, '') as last_message, updated_at, created_at
 		FROM conversations
 		WHERE participant1 = $1 OR participant2 = $1
 		ORDER BY updated_at DESC

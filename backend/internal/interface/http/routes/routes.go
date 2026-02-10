@@ -55,6 +55,7 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 		{
 			users.GET("/me", userController.GetProfile)
 			users.PUT("/me", userController.UpdateProfile)
+			users.GET("/:id", userController.GetUserProfileByID)
 		}
 
 		// Survey routes

@@ -206,6 +206,10 @@ class APIClient {
     return this.put<User>('/api/v1/users/me', data)
   }
 
+  async getUserProfileByID(id: string): Promise<User> {
+    return this.get<User>(`/api/v1/users/${id}`)
+  }
+
   // ===================
   // SURVEY ENDPOINTS
   // ===================

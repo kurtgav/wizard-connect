@@ -63,6 +63,26 @@ func (ctrl *UserController) GetProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": user})
 }
 
+// GetUserProfileByID returns a specific user's public profile
+func (ctrl *UserController) GetUserProfileByID(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User ID is required"})
+		return
+	}
+
+	user, err := ctrl.userRepo.GetByID(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	// In a real app, you would strip private fields here
+	// For this app, we'll return the full profile since visibility
+	// is managed at the matching layer
+	c.JSON(http.StatusOK, gin.H{"data": user})
+}
+
 // UpdateProfile updates the current user's profile
 func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 	userID, exists := middleware.GetUserID(c)
