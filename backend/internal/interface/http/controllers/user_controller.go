@@ -157,7 +157,7 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 	}
 
 	fmt.Printf("DEBUG: Updating user with data: %+v\n", user)
-	fmt.Printf("DEBUG: AvatarURL received: %s\n", req.AvatarURL)
+	fmt.Printf("DEBUG: AvatarURL received: %v\n", req.AvatarURL)
 
 	if err := ctrl.userRepo.Update(c.Request.Context(), user); err != nil {
 		fmt.Printf("DATABASE UPDATE ERROR: %v\n", err)
