@@ -109,7 +109,7 @@ func Load() (*Config, error) {
 				return origins
 			}(),
 			AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-			AllowedHeaders: []string{"Content-Type", "Authorization"},
+			AllowedHeaders: []string{"Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With", "X-CSRF-Token", "Token", "session"},
 		},
 	}
 

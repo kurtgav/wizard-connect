@@ -58,30 +58,19 @@ func main() {
 	// Create Gin router
 	router := gin.New()
 
-	// 1. Core Global Middleware (Logger, Recovery, Gzip)
-	router.Use(gzip.Gzip(gzip.DefaultCompression))
+	// 1. Global Middleware (Apply to ALL routes including System/Socket/API)
 	router.Use(gin.Recovery())
 	router.Use(gin.Logger())
+	router.Use(gzip.Gzip(gzip.DefaultCompression))
 
-	// 2. Global CORS Middleware
-	// We apply this early to ensure ALL routes (including health/debug) have it.
+	// Apply CORS globally - handles all OPTIONS preflights and Origin checks
 	router.Use(middleware.NewCORS(middleware.CORSConfig{
 		AllowedOrigins: cfg.CORS.AllowedOrigins,
 		AllowedMethods: cfg.CORS.AllowedMethods,
 		AllowedHeaders: cfg.CORS.AllowedHeaders,
 	}))
 
-	// 3. Rate Limiter
-	rateLimiter := middleware.NewRateLimiter(100, 200)
-	rateLimiter.Cleanup(5 * time.Minute)
-
-	// 4. Setup Routes
-	// This will mount Socket.IO on the router and API routes within the apiGroup.
-	apiGroup := router.Group("/api/v1")
-	apiGroup.Use(rateLimiter.RateLimit())
-	routes.SetupRoutes(router, apiGroup, db, cfg)
-
-	// 5. System Endpoints (CORS-enabled via global middleware)
+	// 2. System Endpoints
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "healthy",
@@ -89,23 +78,15 @@ func main() {
 		})
 	})
 
-	router.GET("/api/v1/debug/schema", func(c *gin.Context) {
-		var userColumns []string
-		rows, _ := db.DB.Query("SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_name = 'users' AND table_schema = 'public' ORDER BY ordinal_position")
-		if rows != nil {
-			defer rows.Close()
-			for rows.Next() {
-				var colName, dataType, nullable string
-				rows.Scan(&colName, &dataType, &nullable)
-				userColumns = append(userColumns, fmt.Sprintf("%s (%s) nullable=%s", colName, dataType, nullable))
-			}
-		}
+	// 3. API & WebSocket routes
+	rateLimiter := middleware.NewRateLimiter(100, 200)
+	rateLimiter.Cleanup(5 * time.Minute)
 
-		c.JSON(http.StatusOK, gin.H{
-			"users_table_columns": userColumns,
-			"database_status":     "connected",
-		})
-	})
+	apiGroup := router.Group("/api/v1")
+	apiGroup.Use(rateLimiter.RateLimit())
+
+	// Initialize and mount all functional routes
+	routes.SetupRoutes(router, apiGroup, db, cfg)
 
 	// Start server
 	srv := &http.Server{
