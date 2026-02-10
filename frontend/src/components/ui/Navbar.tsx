@@ -102,14 +102,24 @@ export function Navbar() {
             <header className="fixed top-0 left-0 right-0 z-50 bg-[var(--retro-cream)] border-b-4 border-[var(--retro-navy)] h-20">
                 <div className="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
 
-                    {/* Logo (Optional/Implied) - Keeping it simple or existing logic */}
-                    <Link href="/" className="flex items-center gap-3 shrink-0 md:mr-8">
-                        <div className="relative w-[3.5rem] h-[3.5rem] md:w-24 md:h-24">
-                            <Image
+                    {/* Logo (Top Left) */}
+                    <Link href="/" className="flex items-center gap-3 shrink-0 mr-4">
+                        <div className="relative w-12 h-12 md:w-16 md:h-16 flex items-center justify-center">
+                            <img
                                 src="/images/wizardconnect-logo.png"
-                                alt="Logo"
-                                fill
-                                className="object-contain"
+                                alt="Wizard Connect"
+                                className="w-full h-full object-contain"
+                                onError={(e) => {
+                                    // Fallback if image fails
+                                    e.currentTarget.style.display = 'none';
+                                    const parent = e.currentTarget.parentElement;
+                                    if (parent && !parent.querySelector('.logo-fallback')) {
+                                        const span = document.createElement('span');
+                                        span.className = 'pixel-font text-[var(--retro-navy)] font-black text-xl logo-fallback';
+                                        span.innerText = 'W';
+                                        parent.appendChild(span);
+                                    }
+                                }}
                             />
                         </div>
                     </Link>

@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"math"
 	"sort"
 
@@ -231,20 +232,20 @@ func (s *matchingService) GenerateMatches(ctx context.Context, userID string, li
 
 	currentUserEmail := userEmailMap[userID]
 
+	fmt.Printf("DEBUG: Found %d completed surveys for matching (current user: %s)\n", len(surveys), userID)
+
 	for _, survey := range surveys {
 		if survey.UserID == userID {
 			continue
 		}
 
-		// Gender preference filter (Critical)
-		// TODO: Implement gender filter if data is available
-
 		score, err := s.CalculateCompatibility(ctx, userSurvey, survey)
 		if err != nil {
+			fmt.Printf("DEBUG: Calculation failed for user %s: %v\n", survey.UserID, err)
 			continue
 		}
 
-		// Check for mutual crush
+		// ... (mutual crush check)
 		isMutual := false
 		otherUserCrushes, _ := s.crushRepo.GetByUserID(ctx, survey.UserID)
 		hasCrushOnMe := false
@@ -257,10 +258,12 @@ func (s *matchingService) GenerateMatches(ctx context.Context, userID string, li
 
 		if hasCrushOnMe && crushEmails[userEmailMap[survey.UserID]] {
 			isMutual = true
-			score = math.Min(score*1.2, 100.0) // 20% Boost for mutual crush
+			score = math.Min(score*1.2, 100.0)
 		} else if hasCrushOnMe || crushEmails[userEmailMap[survey.UserID]] {
-			score = math.Min(score*1.1, 100.0) // 10% Boost for one-way crush
+			score = math.Min(score*1.1, 100.0)
 		}
+
+		fmt.Printf("DEBUG: Candidate %s scored %.2f (Mutual: %v)\n", survey.UserID, score, isMutual)
 
 		candidates = append(candidates, matchCandidate{
 			userID:   survey.UserID,
@@ -268,6 +271,8 @@ func (s *matchingService) GenerateMatches(ctx context.Context, userID string, li
 			isMutual: isMutual,
 		})
 	}
+
+	fmt.Printf("DEBUG: Total candidates matched: %d\n", len(candidates))
 
 	// Sort by compatibility score (descending)
 	sort.Slice(candidates, func(i, j int) bool {

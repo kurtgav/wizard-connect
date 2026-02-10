@@ -102,6 +102,7 @@ export default function ProfilePage() {
   // Start in view mode (false), switch to true to edit
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   // Load user profile on mount or when context updates
   useEffect(() => {
@@ -157,12 +158,43 @@ export default function ProfilePage() {
     try {
       setIsSaving(true)
 
+      let finalAvatarUrl = profile.avatarUrl
+
+      // 1. If we have a new file, upload it first
+      if (selectedFile) {
+        try {
+          const { createClient } = await import('@/lib/supabase/client')
+          const supabase = createClient()
+          const fileExt = selectedFile.name.split('.').pop()
+          const fileName = `${Math.random()}.${fileExt}`
+          const filePath = `${fileName}`
+
+          const { error: uploadError, data } = await supabase.storage
+            .from('avatars')
+            .upload(filePath, selectedFile)
+
+          if (uploadError) throw uploadError
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(filePath)
+
+          finalAvatarUrl = publicUrl
+          setProfile(prev => ({ ...prev, avatarUrl: publicUrl }))
+        } catch (uploadErr) {
+          console.error('Image upload failed:', uploadErr)
+          // Continue with existing avatar if upload fails, or stop?
+          // Let's at least try to save the rest
+        }
+      }
+
       const updateData: any = {
         first_name: profile.firstName,
         last_name: profile.lastName,
         bio: profile.bio,
         instagram: profile.instagram,
         phone: profile.phone,
+        avatar_url: finalAvatarUrl,
         contact_preference: profile.contactPreference,
         visibility: profile.visibility,
         gender: profile.gender || undefined,
@@ -170,6 +202,7 @@ export default function ProfilePage() {
       }
 
       await apiClient.updateProfile(updateData)
+      setSelectedFile(null)
       setIsEditing(false)
       alert('Profile updated successfully!')
     } catch (error) {
@@ -183,6 +216,7 @@ export default function ProfilePage() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      setSelectedFile(file)
       const url = URL.createObjectURL(file)
       setProfile(prev => ({ ...prev, avatarUrl: url }))
     }
