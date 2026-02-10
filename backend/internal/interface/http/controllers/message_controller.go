@@ -194,7 +194,16 @@ func (ctrl *MessageController) SendMessage(c *gin.Context) {
 			"message":   req.Content,
 			"timestamp": message.CreatedAt.UnixMilli(),
 		}
+
+		// 1. Broadcast to the conversation room (for currently viewing)
 		ctrl.socketServer.BroadcastToRoom("/", conversationID, "receive-message", payload)
+
+		// 2. Broadcast to both individual participant rooms (for sidebar/unread updates)
+		conv, err := ctrl.conversationRepo.GetByID(c.Request.Context(), conversationID)
+		if err == nil && conv != nil {
+			ctrl.socketServer.BroadcastToRoom("/", "user_"+conv.Participant1, "receive-message", payload)
+			ctrl.socketServer.BroadcastToRoom("/", "user_"+conv.Participant2, "receive-message", payload)
+		}
 	}
 
 	c.JSON(http.StatusCreated, gin.H{

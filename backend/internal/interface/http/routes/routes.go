@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Config) {
+func SetupRoutes(rootRouter *gin.Engine, apiGroup *gin.RouterGroup, db *database.Database, cfg *config.Config) {
 	// Initialize repositories
 	userRepo := database.NewUserRepository(db)
 	surveyRepo := database.NewSurveyRepository(db)
@@ -43,15 +43,15 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 
 	messageController := controllers.NewMessageController(conversationRepo, messageRepo, userRepo, socketHandler.Server)
 
-	// Mount websocket handler - allow all methods for socket.io
-	router.Any("/socket.io/*any", socketHandler.Handler())
+	// Mount websocket handler on root router - allow all methods for socket.io
+	rootRouter.Any("/socket.io/*any", socketHandler.Handler())
 
 	// Initialize auth middleware
 	authMiddleware := middleware.NewAuthMiddleware(cfg.Auth.JWTSecret)
 	adminMiddleware := middleware.NewAdminMiddleware(adminRepo)
 
-	// Public routes
-	public := router.Group("")
+	// Public routes settings
+	public := apiGroup.Group("")
 	{
 		public.GET("/health", func(c *gin.Context) {
 			c.JSON(200, gin.H{"status": "ok", "time": "healthy"})
@@ -60,7 +60,7 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 	}
 
 	// Protected routes (require authentication)
-	protected := router.Group("")
+	protected := apiGroup.Group("")
 	protected.Use(authMiddleware.Authenticate())
 	{
 		// User routes

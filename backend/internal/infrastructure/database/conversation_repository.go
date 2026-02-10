@@ -97,3 +97,23 @@ func (r *ConversationRepository) UpdateLastMessage(ctx context.Context, conversa
 	_, err := r.db.Exec(ctx, query, conversationID, lastMessage)
 	return err
 }
+
+func (r *ConversationRepository) GetByID(ctx context.Context, id string) (*entities.Conversation, error) {
+	query := `
+		SELECT id, participant1, participant2, COALESCE(last_message, '') as last_message, updated_at, created_at
+		FROM conversations
+		WHERE id = $1
+	`
+
+	conv := &entities.Conversation{}
+	err := r.db.QueryRow(ctx, query, id).Scan(
+		&conv.ID, &conv.Participant1, &conv.Participant2,
+		&conv.LastMessage, &conv.UpdatedAt, &conv.CreatedAt,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return conv, nil
+}

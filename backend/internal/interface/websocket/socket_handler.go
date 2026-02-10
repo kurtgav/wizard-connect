@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 
-	"strings"
 	"wizard-connect/internal/infrastructure/database"
 
 	"github.com/gin-gonic/gin"
@@ -68,6 +67,11 @@ func NewSocketHandler(
 		fmt.Printf("WS User %s joined room %s\n", s.ID(), roomID)
 	})
 
+	server.OnEvent("/", "identify", func(s socketio.Conn, userID string) {
+		s.Join("user_" + userID)
+		fmt.Printf("WS User %s identified as %s and joined their private room\n", s.ID(), userID)
+	})
+
 	server.OnDisconnect("/", func(s socketio.Conn, reason string) {
 		fmt.Println("WS Disconnected:", s.ID(), reason)
 	})
@@ -94,9 +98,6 @@ func (h *SocketHandler) Handler() gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusNoContent)
 			return
 		}
-
-		// Strip the /api/v1 prefix so the server sees /socket.io/...
-		c.Request.URL.Path = strings.TrimPrefix(c.Request.URL.Path, "/api/v1")
 
 		h.Server.ServeHTTP(c.Writer, c.Request)
 	}
