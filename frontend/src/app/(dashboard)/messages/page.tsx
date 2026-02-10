@@ -46,8 +46,8 @@ export default function MessagesPage() {
     loadConversations()
 
     // Initialize Socket.IO
-    const apiURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
-    const socketPath = apiURL.includes('localhost') ? '/api/v1/socket.io' : '/api/v1/socket.io'
+    const apiURL = apiClient.getBaseURL()
+    const socketPath = '/socket.io'
 
     console.log('Connecting to socket at:', apiURL, 'with path:', socketPath)
 
@@ -61,6 +61,12 @@ export default function MessagesPage() {
     newSocket.on('connect', () => {
       console.log('Socket.IO connected')
       setIsConnected(true)
+
+      // Identify this connection with the user ID
+      if (currentUserId) {
+        console.log('Identifying as user:', currentUserId)
+        newSocket.emit('identify', currentUserId)
+      }
     })
 
     newSocket.on('disconnect', () => {

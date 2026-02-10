@@ -26,7 +26,7 @@ class APIClient {
   private cacheTTL = 30000 // 30 seconds cache for GET requests
 
   constructor(baseURL?: string) {
-    const defaultProdURL = 'https://wizardconnect-backend.onrender.com'
+    const defaultProdURL = 'https://wizard-connect-backend.onrender.com'
     this.baseURL = baseURL || process.env.NEXT_PUBLIC_API_URL || defaultProdURL
 
     // Check for production misconfiguration
@@ -48,6 +48,11 @@ class APIClient {
   // Clear cache
   clearCache() {
     this.cache.clear()
+  }
+
+  // Get current baseURL
+  getBaseURL(): string {
+    return this.baseURL
   }
 
   // Clear specific endpoint cache
