@@ -71,11 +71,16 @@ func (ctrl *UserController) GetUserProfileByID(c *gin.Context) {
 		return
 	}
 
+	fmt.Printf("DEBUG: Fetching profile for user ID: %s\n", id)
+
 	user, err := ctrl.userRepo.GetByID(c.Request.Context(), id)
 	if err != nil {
+		fmt.Printf("DEBUG: Failed to fetch user profile for ID %s: %v\n", id, err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
+
+	fmt.Printf("DEBUG: Successfully fetched user profile for ID %s: %+v\n", id, user)
 
 	// In a real app, you would strip private fields here
 	// For this app, we'll return the full profile since visibility

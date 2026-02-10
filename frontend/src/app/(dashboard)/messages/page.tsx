@@ -87,7 +87,7 @@ export default function MessagesPage() {
   const loadMessages = async (conversationId: string) => {
     try {
       const response: any = await apiClient.getMessages(conversationId)
-      setMessages(response.data || [])
+      setMessages(Array.isArray(response) ? response : (response.data || []))
       setCurrentUserId(response.current_user_id || '')
     } catch (error) {
       console.error('Failed to load messages:', error)

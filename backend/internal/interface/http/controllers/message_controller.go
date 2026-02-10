@@ -67,10 +67,13 @@ func (ctrl *MessageController) GetConversations(c *gin.Context) {
 			otherUserID = conv.Participant2
 		}
 
+		fmt.Printf("DEBUG: Fetching profile for other participant %s in conversation %s\n", otherUserID, conv.ID)
 		otherUser, err := ctrl.userRepo.GetByID(c.Request.Context(), otherUserID)
 		if err != nil {
+			fmt.Printf("ERROR: Failed to fetch user %s: %v\n", otherUserID, err)
 			continue
 		}
+		fmt.Printf("DEBUG: Fetched user %s: %+v\n", otherUserID, otherUser)
 
 		// Get unread count
 		unreadCount, _ := ctrl.messageRepo.GetUnreadCount(c.Request.Context(), userID)

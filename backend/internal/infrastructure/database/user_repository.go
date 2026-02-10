@@ -85,6 +85,38 @@ func (r *UserRepository) GetByID(ctx context.Context, id string) (*entities.User
 	)
 
 	if err != nil {
+		// If user not found in public.users, try to create a shell user
+		// by checking if they exist in auth.users
+		if strings.Contains(err.Error(), "no rows") {
+			fmt.Printf("DEBUG: User %s not found in public.users, attempting to create shell user\n", id)
+
+			// Try to get user info from auth.users
+			authQuery := `SELECT id, email FROM public.get_user_from_auth($1)`
+			var authID, authEmail string
+			authErr := r.db.QueryRow(ctx, authQuery, id).Scan(&authID, &authEmail)
+
+			if authErr != nil {
+				return nil, fmt.Errorf("failed to get user: %w (also failed to get from auth: %w)", err, authErr)
+			}
+
+			// Create shell user
+			newUser := &entities.User{
+				ID:               authID,
+				Email:            authEmail,
+				ContactPref:      "email",
+				Visibility:       "matches_only",
+				Gender:           "prefer_not_to_say",
+				GenderPreference: "both",
+			}
+
+			createErr := r.Create(ctx, newUser)
+			if createErr != nil {
+				return nil, fmt.Errorf("failed to create shell user: %w", createErr)
+			}
+
+			fmt.Printf("DEBUG: Shell user created successfully: %+v\n", newUser)
+			return newUser, nil
+		}
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
 
