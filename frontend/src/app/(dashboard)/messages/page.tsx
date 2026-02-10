@@ -130,6 +130,7 @@ export default function MessagesPage() {
     const channel = supabase
       .channel('conversations-updates')
       .on(
+        'postgres_changes',
         { event: '*', schema: 'public', table: 'conversations' },
         async () => {
           const data = await apiClient.getConversations()
