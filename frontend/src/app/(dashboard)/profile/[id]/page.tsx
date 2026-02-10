@@ -143,7 +143,7 @@ export default function PublicProfilePage() {
 
                         <div className="w-full space-y-4">
                             <div className="p-3 border-2 border-[var(--retro-navy)] bg-[#f9f9f9] text-center">
-                                <div className="pixel-font text-[10px] text-gray-500 mb-1 tracking-widest">VISIBILITY</div>
+                                <div className="pixel-font text-[10px] text-gray-500 mb-1 tracking-widest">PROFILE VISIBILITY</div>
                                 <div className="flex items-center justify-center gap-2">
                                     <visibility.icon className={`w-4 h-4 ${visibility.color}`} />
                                     <span className="pixel-font-body text-base uppercase font-bold text-[var(--retro-navy)]">{visibility.label}</span>
@@ -151,7 +151,7 @@ export default function PublicProfilePage() {
                             </div>
 
                             <div className="p-3 border-2 border-[var(--retro-navy)] bg-[#f9f9f9]">
-                                <div className="pixel-font text-[10px] text-gray-400 mb-2 uppercase">Core_Data</div>
+                                <div className="pixel-font text-[10px] text-gray-400 mb-2 uppercase">PERSONAL INFO</div>
                                 <div className="space-y-1">
                                     <div className="flex justify-between items-center text-[var(--retro-navy)]">
                                         <span className="pixel-font text-[8px] opacity-60">GENDER</span>
@@ -169,7 +169,7 @@ export default function PublicProfilePage() {
                                 className="w-full bg-[var(--retro-navy)] text-white p-4 border-b-4 border-black active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-3"
                             >
                                 <MessageSquare className="w-5 h-5 text-[var(--retro-yellow)]" />
-                                <span className="pixel-font text-sm uppercase">SEND_MESSAGE</span>
+                                <span className="pixel-font text-sm uppercase">SEND MESSAGE</span>
                             </button>
                         </div>
                     </div>
@@ -226,7 +226,7 @@ export default function PublicProfilePage() {
                         </div>
 
                         <div className="pt-6 border-t-2 border-dashed border-[var(--retro-navy)]/30 text-center opacity-40">
-                            <span className="pixel-font text-[8px] uppercase tracking-widest">End_of_Record_Entry</span>
+                            <span className="pixel-font text-[8px] uppercase tracking-widest">End of Records</span>
                         </div>
                     </div>
                 </div>

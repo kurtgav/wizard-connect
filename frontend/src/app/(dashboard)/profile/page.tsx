@@ -329,7 +329,7 @@ export default function ProfilePage() {
 
               <div className="w-full space-y-4">
                 <div className="p-3 border-2 border-[var(--retro-navy)] bg-[#f9f9f9] text-center shadow-[4px_4px_0_0_rgba(0,0,0,0.05)]">
-                  <div className="pixel-font text-[10px] text-gray-400 mb-1 tracking-widest">VISIBILITY_LEVEL</div>
+                  <div className="pixel-font text-[10px] text-gray-400 mb-1 tracking-widest">PROFILE VISIBILITY</div>
                   <div className="flex items-center justify-center gap-2">
                     <visibility.icon className={`w-4 h-4 ${visibility.color}`} />
                     <span className="pixel-font-body text-base uppercase font-bold text-[var(--retro-navy)]">{visibility.label}</span>
@@ -337,7 +337,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="p-4 border-2 border-[var(--retro-navy)] bg-[#f9f9f9] shadow-[4px_4px_0_0_rgba(0,0,0,0.05)]">
-                  <div className="pixel-font text-[10px] text-gray-400 mb-3 border-b border-gray-200 pb-1 uppercase tracking-widest">Identity_Record</div>
+                  <div className="pixel-font text-[10px] text-gray-400 mb-3 border-b border-gray-200 pb-1 uppercase tracking-widest">PERSONAL INFO</div>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="pixel-font text-[8px] text-gray-400">GENDER</span>
@@ -355,7 +355,7 @@ export default function ProfilePage() {
                   className="w-full bg-[var(--retro-navy)] text-white p-4 border-b-4 border-black hover:bg-[var(--retro-navy)]/90 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-3 shadow-[6px_6px_0_0_rgba(30,58,138,0.2)]"
                 >
                   <Edit2 className="w-4 h-4 text-[var(--retro-yellow)]" />
-                  <span className="pixel-font text-sm uppercase font-bold">CONFIGURE_PROFILE</span>
+                  <span className="pixel-font text-sm uppercase font-bold">EDIT PROFILE</span>
                 </button>
               </div>
             </div>
@@ -382,10 +382,10 @@ export default function ProfilePage() {
               {/* Bio */}
               <div className="p-8 border-4 border-[var(--retro-navy)] bg-white relative shadow-[8px_8px_0_0_rgba(30,58,138,0.05)]">
                 <div className="absolute -top-4 left-6 px-3 bg-white border-2 border-[var(--retro-navy)] pixel-font text-[10px] text-[var(--retro-navy)] font-bold shadow-[2px_2px_0_0_var(--retro-navy)]">
-                  USER_BIOGRAPHY_BUFFER
+                  BIO
                 </div>
                 <p className="pixel-font-body text-2xl md:text-3xl text-[var(--retro-navy)] leading-relaxed italic opacity-95">
-                  {profile.bio || "No data stream received from this user's biography."}
+                  {profile.bio || "No bio provided yet."}
                 </p>
                 <div className="absolute bottom-2 right-2 opacity-10">
                   <Shield className="w-12 h-12 text-[var(--retro-navy)]" />
@@ -399,7 +399,7 @@ export default function ProfilePage() {
                     <Mail className="w-6 h-6 text-[var(--retro-navy)]" />
                   </div>
                   <div className="min-w-0">
-                    <div className="pixel-font text-[index-8px] opacity-40 uppercase tracking-tighter">Transmission_ID</div>
+                    <div className="pixel-font text-[8px] opacity-40 uppercase tracking-tighter">EMAIL</div>
                     <div className="pixel-font-body text-lg font-bold truncate text-[var(--retro-navy)]">{profile.email}</div>
                   </div>
                 </div>
@@ -409,7 +409,7 @@ export default function ProfilePage() {
                     <Instagram className="w-6 h-6 text-[var(--retro-pink)]" />
                   </div>
                   <div className="min-w-0">
-                    <div className="pixel-font text-[8px] opacity-40 uppercase tracking-tighter">Social_Interface</div>
+                    <div className="pixel-font text-[8px] opacity-40 uppercase tracking-tighter">INSTAGRAM</div>
                     <div className="pixel-font-body text-lg font-bold truncate text-[var(--retro-navy)]">@{profile.instagram || 'NOT_LINKED'}</div>
                   </div>
                 </div>
@@ -419,7 +419,7 @@ export default function ProfilePage() {
                     <Phone className="w-6 h-6 text-blue-500" />
                   </div>
                   <div className="min-w-0">
-                    <div className="pixel-font text-[8px] opacity-40 uppercase tracking-tighter">Voice_Comm_Link</div>
+                    <div className="pixel-font text-[8px] opacity-40 uppercase tracking-tighter">PHONE</div>
                     <div className="pixel-font-body text-lg font-bold truncate text-[var(--retro-navy)]">{profile.phone || 'DISCONNECTED'}</div>
                   </div>
                 </div>
@@ -429,7 +429,7 @@ export default function ProfilePage() {
                     <Info className="w-6 h-6 text-gray-500" />
                   </div>
                   <div className="min-w-0">
-                    <div className="pixel-font text-[8px] opacity-40 uppercase tracking-tighter">Comm_Preference</div>
+                    <div className="pixel-font text-[8px] opacity-40 uppercase tracking-tighter">PREFERRED CONTACT</div>
                     <div className="pixel-font-body text-lg font-bold truncate uppercase text-[var(--retro-navy)] font-bold">{profile.contactPreference}</div>
                   </div>
                 </div>
