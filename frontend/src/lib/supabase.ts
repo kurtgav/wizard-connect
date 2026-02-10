@@ -4,6 +4,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { checkSupabaseConfig } from '@/lib/utils/supabase-config-check'
+import { CustomStorage } from '@/lib/utils/storage'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
@@ -20,52 +21,7 @@ const noOpLock = async (name: string, acquireTimeout: number, fn: () => Promise<
   return await fn()
 }
 
-// Custom storage adapter with better error handling for mobile browsers
-class CustomStorage {
-  private storage: Storage | null = null
-
-  constructor() {
-    try {
-      if (typeof window !== 'undefined') {
-        this.storage = window.localStorage
-        // Test if localStorage works
-        const testKey = '__supabase_storage_test__'
-        this.storage.setItem(testKey, 'test')
-        this.storage.removeItem(testKey)
-      }
-    } catch (e) {
-      console.warn('localStorage not available, auth will not persist:', e)
-      this.storage = null
-    }
-  }
-
-  getItem(key: string): string | null {
-    try {
-      return this.storage?.getItem(key) ?? null
-    } catch (e) {
-      console.warn('Failed to get item from storage:', e)
-      return null
-    }
-  }
-
-  setItem(key: string, value: string): void {
-    try {
-      this.storage?.setItem(key, value)
-    } catch (e) {
-      console.warn('Failed to set item in storage:', e)
-    }
-  }
-
-  removeItem(key: string): void {
-    try {
-      this.storage?.removeItem(key)
-    } catch (e) {
-      console.warn('Failed to remove item from storage:', e)
-    }
-  }
-}
-
-const customStorage = new CustomStorage()
+const customStorage = new CustomStorage('supabase');
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -104,7 +60,7 @@ export const auth = {
     return await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback/confirm`,
       },
     })
   },

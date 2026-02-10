@@ -72,13 +72,15 @@ export interface Match {
 }
 
 export interface MatchWithDetails extends Match {
-  email?: string
-  first_name?: string
-  last_name?: string
-  avatar_url?: string
-  bio?: string
-  year?: string
-  major?: string
+  matched_user?: {
+    email: string
+    first_name: string
+    last_name: string
+    avatar_url: string
+    bio: string
+    year: string
+    major: string
+  }
 }
 
 // Crush Types
@@ -151,7 +153,7 @@ export interface SendMessageRequest {
   content: string
 }
 
-export interface UpdateProfileRequest extends Partial<UserProfile> {}
+export interface UpdateProfileRequest extends Partial<UserProfile> { }
 
 // Error Types
 export interface APIError {

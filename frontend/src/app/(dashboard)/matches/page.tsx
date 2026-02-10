@@ -5,28 +5,11 @@ import { PixelIcon, PixelIconName } from '@/components/ui/PixelIcon'
 import { apiClient } from '@/lib/api-client'
 import { useRouter } from 'next/navigation'
 
-interface Match {
-  id: string
-  user_id: string
-  matched_user_id: string
-  compatibility_score: number
-  rank: number
-  is_mutual_crush: boolean
-  created_at: string
-  matched_user?: {
-    email: string
-    first_name: string
-    last_name: string
-    avatar_url: string
-    bio: string
-    year: string
-    major: string
-  }
-}
+import { MatchWithDetails } from '@/types/api'
 
 export default function MatchesPage() {
   const router = useRouter()
-  const [matches, setMatches] = useState<Match[]>([])
+  const [matches, setMatches] = useState<MatchWithDetails[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -143,8 +126,27 @@ export default function MatchesPage() {
 
                 {/* Content */}
                 <div className="flex flex-col items-center mb-4">
-                  <div className="w-20 h-20 bg-[var(--retro-cream)] border-4 border-[var(--retro-navy)] mb-4 flex items-center justify-center text-2xl">
-                    <PixelIcon name="smiley" size={40} />
+                  <div className="w-20 h-20 bg-[var(--retro-cream)] border-4 border-[var(--retro-navy)] mb-4 flex items-center justify-center text-2xl overflow-hidden">
+                    {match.matched_user?.avatar_url ? (
+                      <img
+                        src={match.matched_user.avatar_url}
+                        alt={`${match.matched_user.first_name}'s avatar`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback on image load error
+                          (e.target as HTMLImageElement).style.display = 'none'
+                          const parent = (e.target as HTMLImageElement).parentElement
+                          if (parent) {
+                            const icon = document.createElement('div')
+                            icon.className = 'w-full h-full flex items-center justify-center'
+                            parent.appendChild(icon)
+                            // We can't easily render a React component here, so we just use the existing logic as a fallback in state or just let the broken image be hidden
+                          }
+                        }}
+                      />
+                    ) : (
+                      <PixelIcon name="smiley" size={40} />
+                    )}
                   </div>
 
                   <div>

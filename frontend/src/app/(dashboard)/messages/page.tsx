@@ -239,7 +239,14 @@ export default function MessagesPage() {
                       title="Click to view profile"
                     >
                       {conv.other_participant.avatar_url ? (
-                        <img src={conv.other_participant.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                        <img
+                          src={conv.other_participant.avatar_url}
+                          alt="Avatar"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none'
+                          }}
+                        />
                       ) : (
                         <PixelIcon name="smiley" size={32} />
                       )}
@@ -285,7 +292,14 @@ export default function MessagesPage() {
                 >
                   <div className="w-8 h-8 bg-white border-2 border-[var(--retro-navy)] flex items-center justify-center overflow-hidden">
                     {selectedConversation.other_participant.avatar_url ? (
-                      <img src={selectedConversation.other_participant.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                      <img
+                        src={selectedConversation.other_participant.avatar_url}
+                        alt="Avatar"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none'
+                        }}
+                      />
                     ) : (
                       <PixelIcon name="smiley" size={24} className="text-[var(--retro-navy)]" />
                     )}

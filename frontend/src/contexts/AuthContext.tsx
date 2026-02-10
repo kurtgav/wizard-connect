@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return
 
-      console.log('Auth state changed:', event, session?.user?.email)
+      console.log('🔄 Auth state change:', event, session?.user?.email)
 
       setSession(session)
       setUser(session?.user ?? null)

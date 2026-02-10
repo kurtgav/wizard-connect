@@ -17,6 +17,7 @@ import type {
   APIResponse,
   PaginatedResponse,
 } from '@/types/api'
+import { safeLocalStorage } from './utils/storage'
 
 class APIClient {
   private baseURL: string
@@ -25,18 +26,22 @@ class APIClient {
   private cacheTTL = 30000 // 30 seconds cache for GET requests
 
   constructor(baseURL?: string) {
-    this.baseURL = baseURL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+    const defaultProdURL = 'https://wizardconnect-backend.onrender.com'
+    this.baseURL = baseURL || process.env.NEXT_PUBLIC_API_URL || defaultProdURL
 
     // Check for production misconfiguration
-    if (typeof window !== 'undefined' &&
-      window.location.hostname !== 'localhost' &&
-      window.location.hostname !== '127.0.0.1' &&
-      this.baseURL.includes('localhost')) {
-      console.error(
-        '🚨 API CONFIGURATION ERROR: The frontend is deployed but trying to connect to localhost.\n' +
-        'Please set NEXT_PUBLIC_API_URL in your Vercel project settings to your production backend URL.\n' +
-        'Current baseURL:', this.baseURL
-      )
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname
+      const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.')
+
+      if (!isLocalhost && this.baseURL.includes('localhost')) {
+        console.warn(
+          '⚠️ API CONFIGURATION WARNING: You are accessing from a remote device/mobile ' +
+          'but the API is pointing to localhost. Falling back to production backend.\n' +
+          'Current baseURL: ' + this.baseURL
+        )
+        this.baseURL = defaultProdURL
+      }
     }
   }
 
@@ -53,9 +58,7 @@ class APIClient {
   // Set authentication token
   setToken(token: string) {
     this.token = token
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('auth_token', token)
-    }
+    safeLocalStorage.setItem('auth_token', token)
   }
 
   // Get authentication token
@@ -63,18 +66,14 @@ class APIClient {
     if (this.token) {
       return this.token
     }
-    if (typeof window !== 'undefined') {
-      this.token = localStorage.getItem('auth_token')
-    }
+    this.token = safeLocalStorage.getItem('auth_token')
     return this.token
   }
 
   // Clear authentication token
   clearToken() {
     this.token = null
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token')
-    }
+    safeLocalStorage.removeItem('auth_token')
   }
 
   // Generic request method

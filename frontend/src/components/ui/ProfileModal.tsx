@@ -83,7 +83,14 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
               <div className="flex-shrink-0">
                 <div className="w-32 h-32 bg-white border-4 border-[var(--retro-navy)] shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] relative overflow-hidden">
                   {profile.avatar_url ? (
-                    <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                    <img
+                      src={profile.avatar_url}
+                      alt="Avatar"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none'
+                      }}
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-[var(--retro-blue)]">
                       <PixelIcon name="smiley" size={64} className="text-white" />

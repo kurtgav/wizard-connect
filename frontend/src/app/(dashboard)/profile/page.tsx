@@ -183,8 +183,9 @@ export default function ProfilePage() {
           setProfile(prev => ({ ...prev, avatarUrl: publicUrl }))
         } catch (uploadErr) {
           console.error('Image upload failed:', uploadErr)
-          // Continue with existing avatar if upload fails, or stop?
-          // Let's at least try to save the rest
+          alert('Failed to upload profile picture. Please try again.')
+          setIsSaving(false)
+          return // Stop if upload failed to prevent sending blob URLs
         }
       }
 
