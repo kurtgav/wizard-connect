@@ -1,12 +1,14 @@
 // ============================================
 // MESSAGES PAGE - PIXEL CONCEPT DESIGN
-// Dreamy vaporwave messaging experience
+// Dreamy vaporwave messaging experience with real-time updates
 // ============================================
 
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { PixelIcon, PixelIconName } from '@/components/ui/PixelIcon'
+import { PixelIcon } from '@/components/ui/PixelIcon'
+import { ProfileModal } from '@/components/ui/ProfileModal'
+import { createClient } from '@/lib/supabase/client'
 import { apiClient } from '@/lib/api-client'
 import type { ConversationWithDetails, Message } from '@/types/api'
 
@@ -18,19 +20,47 @@ export default function MessagesPage() {
   const [loading, setLoading] = useState(true)
   const [sendingMessage, setSendingMessage] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string>('')
+  const [profileModalUserId, setProfileModalUserId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const channelsRef = useRef<Map<string, any>>(new Map())
+  const supabase = createClient()
 
   // Load conversations on mount
   useEffect(() => {
     loadConversations()
+    return () => {
+      // Cleanup all subscriptions on unmount
+      channelsRef.current.forEach((channel) => {
+        if (channel) {
+          supabase.removeChannel(channel)
+        }
+      })
+      channelsRef.current.clear()
+    }
   }, [])
 
   // Load messages when conversation selected
   useEffect(() => {
     if (selectedConversation) {
       loadMessages(selectedConversation.id)
+      subscribeToMessages(selectedConversation.id)
+      subscribeToConversationUpdates()
     } else {
       setMessages([])
+    }
+
+    // Cleanup subscription when changing conversation
+    return () => {
+      const messageChannel = channelsRef.current.get('messages')
+      if (messageChannel) {
+        supabase.removeChannel(messageChannel)
+        channelsRef.current.delete('messages')
+      }
+      const conversationChannel = channelsRef.current.get('conversations')
+      if (conversationChannel) {
+        supabase.removeChannel(conversationChannel)
+        channelsRef.current.delete('conversations')
+      }
     }
   }, [selectedConversation])
 
@@ -64,6 +94,65 @@ export default function MessagesPage() {
     }
   }
 
+  // Subscribe to new messages for the current conversation
+  const subscribeToMessages = (conversationId: string) => {
+    const channelName = `messages:${conversationId}`
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        (payload: any) => {
+          const newMessage = payload.new as Message
+          setMessages((prev) => {
+            // Avoid duplicates
+            if (prev.some((m) => m.id === newMessage.id)) {
+              return prev
+            }
+            return [...prev, newMessage]
+          })
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Subscribed to messages for conversation:', conversationId)
+        }
+      })
+
+    channelsRef.current.set('messages', channel)
+  }
+
+  // Subscribe to conversation updates (for last message and unread count)
+  const subscribeToConversationUpdates = () => {
+    const channel = supabase
+      .channel('conversations-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'conversations',
+        },
+        async () => {
+          // Reload conversations to get updated last_message and unread counts
+          const data = await apiClient.getConversations()
+          setConversations(data || [])
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Subscribed to conversation updates')
+        }
+      })
+
+    channelsRef.current.set('conversations', channel)
+  }
+
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedConversation || sendingMessage) {
       return
@@ -72,14 +161,22 @@ export default function MessagesPage() {
     try {
       setSendingMessage(true)
       const message = await apiClient.sendMessage(selectedConversation.id, { content: newMessage })
-      setMessages([...messages, message])
+      setMessages((prev) => [...prev, message])
       setNewMessage('')
+
+      // Refresh conversations to update last_message
+      const data = await apiClient.getConversations()
+      setConversations(data || [])
     } catch (error) {
       console.error('Failed to send message:', error)
       alert('Failed to send message')
     } finally {
       setSendingMessage(false)
     }
+  }
+
+  const handleProfileClick = (userId: string) => {
+    setProfileModalUserId(userId)
   }
 
   const formatTime = (dateString: string) => {
@@ -94,7 +191,7 @@ export default function MessagesPage() {
         <h1 className="pixel-font text-3xl md:text-5xl font-bold mb-4 text-[var(--retro-navy)] uppercase tracking-tighter">
           Server <span className="text-[var(--retro-yellow)] text-shadow-md">Chat</span>
         </h1>
-        <div className="inline-block px-4 py-1 border-b-4 border-[var(--retro-red)]">
+        <div className="inline-block px-4 py-1 border-b-4 border-[var(--retro-green)]">
           <p className="pixel-font-body font-bold text-[var(--retro-navy)]">
             ONLINE STATUS: <span className="text-green-600">CONNECTED</span>
           </p>
@@ -133,7 +230,14 @@ export default function MessagesPage() {
                   `}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[var(--retro-cream)] border-2 border-[var(--retro-navy)] flex items-center justify-center text-xl overflow-hidden">
+                    <div
+                      className="w-10 h-10 bg-[var(--retro-cream)] border-2 border-[var(--retro-navy)] flex items-center justify-center text-xl overflow-hidden cursor-pointer hover:ring-2 hover:ring-[var(--retro-blue)] transition-all"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleProfileClick(conv.other_participant.id)
+                      }}
+                      title="Click to view profile"
+                    >
                       {conv.other_participant.avatar_url ? (
                         <img src={conv.other_participant.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
                       ) : (
@@ -141,8 +245,14 @@ export default function MessagesPage() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-center mb-1">
-                        <h3 className="pixel-font text-xs text-[var(--retro-navy)] truncate">
+                      <div
+                        className="flex justify-between items-center mb-1"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleProfileClick(conv.other_participant.id)
+                        }}
+                      >
+                        <h3 className="pixel-font text-xs text-[var(--retro-navy)] truncate cursor-pointer hover:text-[var(--retro-blue)]">
                           {conv.other_participant.first_name} {conv.other_participant.last_name}
                         </h3>
                         {conv.unread_count > 0 && (
@@ -168,7 +278,11 @@ export default function MessagesPage() {
             <>
               {/* Chat Header */}
               <div className="p-4 bg-[var(--retro-blue)] border-b-4 border-[var(--retro-navy)] flex justify-between items-center text-white">
-                <div className="flex items-center gap-3">
+                <div
+                  className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => handleProfileClick(selectedConversation.other_participant.id)}
+                  title="Click to view profile"
+                >
                   <div className="w-8 h-8 bg-white border-2 border-[var(--retro-navy)] flex items-center justify-center overflow-hidden">
                     {selectedConversation.other_participant.avatar_url ? (
                       <img src={selectedConversation.other_participant.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
@@ -177,7 +291,7 @@ export default function MessagesPage() {
                     )}
                   </div>
                   <div>
-                    <h3 className="pixel-font text-sm">
+                    <h3 className="pixel-font text-sm hover:underline">
                       {selectedConversation.other_participant.first_name} {selectedConversation.other_participant.last_name}
                     </h3>
                     <p className="pixel-font-body text-xs opacity-90">
@@ -185,8 +299,12 @@ export default function MessagesPage() {
                     </p>
                   </div>
                 </div>
-                <button className="pixel-btn pixel-btn-secondary px-2 py-1 text-[10px]">
-                  OPTIONS
+                <button
+                  onClick={() => handleProfileClick(selectedConversation.other_participant.id)}
+                  className="pixel-btn pixel-btn-secondary px-2 py-1 text-[10px]"
+                  title="View full profile"
+                >
+                  PROFILE
                 </button>
               </div>
 
@@ -255,6 +373,14 @@ export default function MessagesPage() {
           )}
         </div>
       </div>
+
+      {/* Profile Modal */}
+      {profileModalUserId && (
+        <ProfileModal
+          userId={profileModalUserId}
+          onClose={() => setProfileModalUserId(null)}
+        />
+      )}
     </div>
   )
 }
