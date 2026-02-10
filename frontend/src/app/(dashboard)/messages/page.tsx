@@ -15,6 +15,7 @@ import type { ConversationWithDetails, Message } from '@/types/api'
 export default function MessagesPage() {
   const [conversations, setConversations] = useState<ConversationWithDetails[]>([])
   const [selectedConversation, setSelectedConversation] = useState<ConversationWithDetails | null>(null)
+  const [mobileView, setMobileView] = useState<'list' | 'chat'>('list')
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
@@ -75,7 +76,10 @@ export default function MessagesPage() {
       const data = await apiClient.getConversations()
       setConversations(data || [])
       if (data && data.length > 0 && !selectedConversation) {
-        setSelectedConversation(data[0])
+        // Desktop default: select first conversation
+        if (window.innerWidth >= 1024) {
+          setSelectedConversation(data[0])
+        }
       }
     } catch (error) {
       console.error('Failed to load conversations:', error)
@@ -179,6 +183,15 @@ export default function MessagesPage() {
     setProfileModalUserId(userId)
   }
 
+  const selectConversation = (conv: ConversationWithDetails) => {
+    setSelectedConversation(conv)
+    setMobileView('chat')
+  }
+
+  const goBackToList = () => {
+    setMobileView('list')
+  }
+
   const formatTime = (dateString: string) => {
     const date = new Date(dateString)
     return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
@@ -198,9 +211,12 @@ export default function MessagesPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px] relative">
         {/* Sidebar: User List */}
-        <div className="lg:col-span-1 pixel-card flex flex-col p-0 overflow-hidden">
+        <div className={`
+          lg:col-span-1 pixel-card flex flex-col p-0 overflow-hidden
+          ${mobileView === 'chat' ? 'hidden lg:flex' : 'flex'}
+        `}>
           <div className="p-4 bg-[var(--retro-navy)] text-white border-b-4 border-[var(--retro-navy)]">
             <h2 className="pixel-font text-sm">
               Active Players ({conversations.length})
@@ -220,7 +236,7 @@ export default function MessagesPage() {
               conversations.map((conv) => (
                 <div
                   key={conv.id}
-                  onClick={() => setSelectedConversation(conv)}
+                  onClick={() => selectConversation(conv)}
                   className={`
                     cursor-pointer p-3 border-2 transition-all relative
                     ${selectedConversation?.id === conv.id
@@ -280,37 +296,50 @@ export default function MessagesPage() {
         </div>
 
         {/* Chat Window */}
-        <div className="lg:col-span-2 pixel-card flex flex-col p-0 overflow-hidden relative">
+        <div className={`
+          lg:col-span-2 pixel-card flex flex-col p-0 overflow-hidden relative
+          ${mobileView === 'list' ? 'hidden lg:flex' : 'flex'}
+        `}>
           {selectedConversation ? (
             <>
               {/* Chat Header */}
               <div className="p-4 bg-[var(--retro-blue)] border-b-4 border-[var(--retro-navy)] flex justify-between items-center text-white">
-                <div
-                  className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-                  onClick={() => handleProfileClick(selectedConversation.other_participant.id)}
-                  title="Click to view profile"
-                >
-                  <div className="w-8 h-8 bg-white border-2 border-[var(--retro-navy)] flex items-center justify-center overflow-hidden">
-                    {selectedConversation.other_participant.avatar_url ? (
-                      <img
-                        src={selectedConversation.other_participant.avatar_url}
-                        alt="Avatar"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none'
-                        }}
-                      />
-                    ) : (
-                      <PixelIcon name="smiley" size={24} className="text-[var(--retro-navy)]" />
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="pixel-font text-sm hover:underline">
-                      {selectedConversation.other_participant.first_name} {selectedConversation.other_participant.last_name}
-                    </h3>
-                    <p className="pixel-font-body text-xs opacity-90">
-                      {selectedConversation.other_participant.online ? 'Online' : 'Offline'}
-                    </p>
+                <div className="flex items-center gap-2">
+                  {/* Back button for mobile */}
+                  <button
+                    onClick={goBackToList}
+                    className="lg:hidden p-1 mr-1 hover:bg-white/10 rounded active:scale-95 transition-transform"
+                  >
+                    <PixelIcon name="smiley" size={24} className="rotate-180" />
+                  </button>
+
+                  <div
+                    className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => handleProfileClick(selectedConversation.other_participant.id)}
+                    title="Click to view profile"
+                  >
+                    <div className="w-8 h-8 bg-white border-2 border-[var(--retro-navy)] flex items-center justify-center overflow-hidden">
+                      {selectedConversation.other_participant.avatar_url ? (
+                        <img
+                          src={selectedConversation.other_participant.avatar_url}
+                          alt="Avatar"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none'
+                          }}
+                        />
+                      ) : (
+                        <PixelIcon name="smiley" size={24} className="text-[var(--retro-navy)]" />
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="pixel-font text-sm hover:underline">
+                        {selectedConversation.other_participant.first_name} {selectedConversation.other_participant.last_name}
+                      </h3>
+                      <p className="pixel-font-body text-xs opacity-90">
+                        {selectedConversation.other_participant.online ? 'Online' : 'Offline'}
+                      </p>
+                    </div>
                   </div>
                 </div>
                 <button
