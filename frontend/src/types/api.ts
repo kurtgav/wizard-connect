@@ -125,6 +125,8 @@ export interface ConversationWithDetails extends Conversation {
     last_name: string
     avatar_url?: string
     online?: boolean
+    bio?: string
+    major?: string
   }
   unread_count: number
 }
