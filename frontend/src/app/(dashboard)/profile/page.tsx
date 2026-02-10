@@ -7,6 +7,7 @@ import { LucideIcon } from 'lucide-react'
 import { apiClient } from '@/lib/api-client'
 import type { User, UserProfile } from '@/types/api'
 import { useAuth } from '@/contexts/AuthContext'
+import { useProfileUpdates } from '@/hooks/useProfileUpdates'
 
 interface SelectOption {
   value: string
@@ -126,6 +127,26 @@ export default function ProfilePage() {
       fetchUserProfile()
     }
   }, [contextProfile, authLoading])
+
+  // Subscribe to profile updates for real-time refresh from other devices
+  useProfileUpdates(async (userId) => {
+    // Refresh profile when it's updated from another device
+    const user = await apiClient.getProfile()
+    setProfile({
+      firstName: user.first_name || '',
+      lastName: user.last_name || '',
+      bio: user.bio || '',
+      instagram: user.instagram || '',
+      phone: user.phone || '',
+      email: user.email || '',
+      contactPreference: user.contact_preference || 'email',
+      visibility: user.visibility || 'matches_only',
+      gender: user.gender || '',
+      genderPreference: user.gender_preference || 'both',
+      avatarUrl: user.avatar_url || '',
+    })
+    setLoading(false)
+  })
 
   const fetchUserProfile = async () => {
     try {

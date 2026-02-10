@@ -6,6 +6,7 @@ import { PixelIcon } from './PixelIcon'
 import { apiClient } from '@/lib/api-client'
 import { useRouter } from 'next/navigation'
 import type { User } from '@/types/api'
+import { useUserProfileUpdates } from '@/hooks/useProfileUpdates'
 
 interface ProfileModalProps {
   userId: string | null
@@ -21,6 +22,13 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
       fetchProfile(userId)
     }
   }, [userId])
+
+  // Subscribe to profile updates for real-time avatar refresh
+  useUserProfileUpdates(userId, () => {
+    if (userId) {
+      fetchProfile(userId)
+    }
+  })
 
   const fetchProfile = async (id: string) => {
     try {

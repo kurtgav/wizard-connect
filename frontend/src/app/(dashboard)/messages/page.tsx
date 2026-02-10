@@ -19,6 +19,7 @@ import { ProfileModal } from '@/components/ui/ProfileModal'
 import { createClient } from '@/lib/supabase/client'
 import { apiClient } from '@/lib/api-client'
 import type { ConversationWithDetails, Message as MessageType } from '@/types/api'
+import { useMultipleProfileUpdates } from '@/hooks/useProfileUpdates'
 
 export default function MessagesPage() {
   const [conversations, setConversations] = useState<ConversationWithDetails[]>([])
@@ -74,6 +75,22 @@ export default function MessagesPage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // Subscribe to profile updates for real-time avatar refresh
+  const userIds = conversations.map(c => c.other_participant.id)
+  useMultipleProfileUpdates(userIds, async (userId) => {
+    // Refetch conversations when any participant's profile is updated
+    const data = await apiClient.getConversations()
+    setConversations(data || [])
+    
+    // If the updated user is in the selected conversation, update that too
+    if (selectedConversation && selectedConversation.other_participant.id === userId) {
+      const updatedConv = data?.find(c => c.id === selectedConversation.id)
+      if (updatedConv) {
+        setSelectedConversation(updatedConv)
+      }
+    }
+  })
 
   const loadConversations = async () => {
     try {
