@@ -1,14 +1,11 @@
 package websocket
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 
 	"strings"
-	"wizard-connect/internal/domain/entities"
 	"wizard-connect/internal/infrastructure/database"
 
 	"github.com/gin-gonic/gin"
@@ -69,40 +66,6 @@ func NewSocketHandler(
 	server.OnEvent("/", "join-room", func(s socketio.Conn, roomID string) {
 		s.Join(roomID)
 		fmt.Printf("WS User %s joined room %s\n", s.ID(), roomID)
-	})
-
-	server.OnEvent("/", "send-message", func(s socketio.Conn, msg string) {
-		var payload MessagePayload
-		if err := json.Unmarshal([]byte(msg), &payload); err != nil {
-			log.Printf("WS Error unmarshaling message: %v", err)
-			return
-		}
-
-		fmt.Printf("WS Message from %s in room %s: %s\n", payload.UserID, payload.RoomID, payload.Message)
-
-		// Save to database
-		message := &entities.Message{
-			ConversationID: payload.RoomID,
-			SenderID:       payload.UserID,
-			Content:        payload.Message,
-			IsRead:         false,
-		}
-
-		ctx := context.Background()
-		if err := handler.messageRepo.Create(ctx, message); err != nil {
-			log.Printf("WS Error saving message to DB: %v", err)
-			return
-		}
-
-		// Update conversation last message
-		_ = handler.conversationRepo.UpdateLastMessage(ctx, payload.RoomID, payload.Message)
-
-		// Update payload with DB generated fields
-		payload.ID = message.ID
-		payload.Timestamp = message.CreatedAt.UnixMilli()
-
-		// Broadcast to room
-		handler.Server.BroadcastToRoom("/", payload.RoomID, "receive-message", payload)
 	})
 
 	server.OnDisconnect("/", func(s socketio.Conn, reason string) {

@@ -10,23 +10,27 @@ import (
 	"wizard-connect/internal/interface/http/middleware"
 
 	"github.com/gin-gonic/gin"
+	socketio "github.com/googollee/go-socket.io"
 )
 
 type MessageController struct {
 	conversationRepo *database.ConversationRepository
 	messageRepo      *database.MessageRepository
 	userRepo         *database.UserRepository
+	socketServer     *socketio.Server
 }
 
 func NewMessageController(
 	conversationRepo *database.ConversationRepository,
 	messageRepo *database.MessageRepository,
 	userRepo *database.UserRepository,
+	socketServer *socketio.Server,
 ) *MessageController {
 	return &MessageController{
 		conversationRepo: conversationRepo,
 		messageRepo:      messageRepo,
 		userRepo:         userRepo,
+		socketServer:     socketServer,
 	}
 }
 
@@ -180,6 +184,18 @@ func (ctrl *MessageController) SendMessage(c *gin.Context) {
 
 	// Update conversation last message
 	_ = ctrl.conversationRepo.UpdateLastMessage(c.Request.Context(), conversationID, req.Content)
+
+	// Broadcast via WebSocket for real-time update
+	if ctrl.socketServer != nil {
+		payload := gin.H{
+			"id":        message.ID,
+			"roomId":    conversationID,
+			"userId":    userID,
+			"message":   req.Content,
+			"timestamp": message.CreatedAt.UnixMilli(),
+		}
+		ctrl.socketServer.BroadcastToRoom("/", conversationID, "receive-message", payload)
+	}
 
 	c.JSON(http.StatusCreated, gin.H{
 		"data":    message,

@@ -29,7 +29,6 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 	userController := controllers.NewUserController(userRepo)
 	surveyController := controllers.NewSurveyController(surveyRepo)
 	matchController := controllers.NewMatchController(matchRepo, surveyRepo, matchingService)
-	messageController := controllers.NewMessageController(conversationRepo, messageRepo, userRepo)
 	crushController := controllers.NewCrushController(crushRepo)
 	campaignController := controllers.NewCampaignController(campaignRepo, matchingService, *surveyRepo, matchRepo)
 	adminController := controllers.NewAdminController(adminRepo, userRepo, matchRepo)
@@ -41,6 +40,8 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 		// Actually WS is crucial now.
 		panic("Failed to initialize Socket.IO handler: " + err.Error())
 	}
+
+	messageController := controllers.NewMessageController(conversationRepo, messageRepo, userRepo, socketHandler.Server)
 
 	// Mount websocket handler - allow all methods for socket.io
 	router.Any("/socket.io/*any", socketHandler.Handler())

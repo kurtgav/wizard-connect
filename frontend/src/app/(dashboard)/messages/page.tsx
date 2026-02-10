@@ -189,31 +189,20 @@ export default function MessagesPage() {
 
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedConversation || !socket) return
-
-    if (!isConnected) {
-      console.warn('Socket not connected, message might be delayed')
-      // Optional: show a small toast or status change
-    }
+    if (!newMessage.trim() || !selectedConversation) return
 
     const messageContent = newMessage.trim()
+    const convoId = selectedConversation.id
 
     // Clear input immediately for better UX
     setNewMessage('')
 
-    // Prepare payload
-    const payload = {
-      roomId: selectedConversation.id,
-      userId: currentUserId,
-      message: messageContent,
-      timestamp: Date.now()
-    }
-
     try {
       // Optimistic update
+      const optimisticId = `optimistic-${Date.now()}`
       const optimisticMsg: MessageType = {
-        id: `optimistic-${Date.now()}`,
-        conversation_id: selectedConversation.id,
+        id: optimisticId,
+        conversation_id: convoId,
         sender_id: currentUserId,
         content: messageContent,
         is_read: false,
@@ -221,17 +210,20 @@ export default function MessagesPage() {
       }
       setMessages((prev) => [...prev, optimisticMsg])
 
-      // Send via WebSocket
-      socket.emit('send-message', JSON.stringify(payload))
+      // 1. Send via HTTP (Reliable, handles Auth)
+      const msg = await apiClient.sendMessage(convoId, { content: messageContent })
 
-      // Also update conversations list locally
+      // 2. Update the optimistic message with real server data (ID, Correct Date)
+      setMessages((prev) => prev.map(m => m.id === optimisticId ? msg : m))
+
+      // 3. Also update conversations list locally for sorting
       setConversations(prev => {
         const updated = prev.map(conv => {
-          if (conv.id === selectedConversation.id) {
+          if (conv.id === convoId) {
             return {
               ...conv,
               last_message: messageContent,
-              updated_at: new Date().toISOString(),
+              updated_at: msg.created_at,
             }
           }
           return conv
@@ -241,7 +233,8 @@ export default function MessagesPage() {
         )
       })
     } catch (error) {
-      console.error('Failed to send message via socket:', error)
+      console.error('Failed to send message:', error)
+      // Optional: Remove optimistic message or show error status
     }
   }
 
