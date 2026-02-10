@@ -82,14 +82,12 @@ func main() {
 
 	// Debug endpoint to check database schema (admin only)
 	router.GET("/api/v1/debug/schema", func(c *gin.Context) {
-		userID, exists := middleware.GetUserID(c)
+		_, exists := middleware.GetUserID(c)
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
 			return
 		}
 
-		// Check if user is admin (or allow for debugging)
-		// For now, allow all authenticated users to check schema for debugging
 		// Get users table schema
 		var userColumns []string
 		rows, err := db.DB.Query("SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_name = 'users' AND table_schema = 'public' ORDER BY ordinal_position")
