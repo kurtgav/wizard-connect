@@ -5,9 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import {
   Edit2, Save, X, Mail, Phone, Instagram, Eye, EyeOff,
-  Shield, Check, Heart, ChevronDown,
-  Terminal, Zap, Star, Layout, Settings, Camera,
-  Book, Info, Share2
+  Shield, ChevronDown,
+  Star, Settings, Camera,
+  Book, Info, User as UserIcon
 } from 'lucide-react'
 import { LucideIcon } from 'lucide-react'
 import { apiClient } from '@/lib/api-client'
@@ -200,9 +200,9 @@ export default function ProfilePage() {
 
   const getVisibilityInfo = (val: string) => {
     switch (val) {
-      case 'public': return { label: 'PUBLIC_SERVER', icon: Eye, color: 'text-green-500', bg: 'bg-green-500/10' }
-      case 'private': return { label: 'OFFLINE_MODE', icon: EyeOff, color: 'text-gray-500', bg: 'bg-gray-500/10' }
-      default: return { label: 'GUILD_ONLY', icon: Shield, color: 'text-blue-500', bg: 'bg-blue-500/10' }
+      case 'public': return { label: 'PUBLIC_PROFILE', icon: Eye, color: 'text-green-500', bg: 'bg-green-500/10' }
+      case 'private': return { label: 'HIDDEN_MODE', icon: EyeOff, color: 'text-gray-500', bg: 'bg-gray-500/10' }
+      default: return { label: 'MATCHES_ONLY', icon: Shield, color: 'text-blue-500', bg: 'bg-blue-500/10' }
     }
   }
 
@@ -266,7 +266,7 @@ export default function ProfilePage() {
   if (loading) return (
     <div className="flex flex-col items-center justify-center min-h-[70vh]">
       <div className="pixel-spinner mb-4" />
-      <p className="pixel-font text-[var(--retro-navy)] animate-pulse uppercase">Syncing character data...</p>
+      <p className="pixel-font text-[var(--retro-navy)] animate-pulse uppercase">Restoring profile data...</p>
     </div>
   )
 
@@ -274,444 +274,396 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12 relative overflow-hidden">
-      {/* Redesign: WIZARD_OS_2026 Window */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="bg-[var(--retro-white)] border-4 border-[var(--retro-navy)] shadow-[12px_12px_0_0_var(--retro-navy)] overflow-hidden"
       >
-        {/* Title Bar */}
+        {/* Simplified Title Bar */}
         <div className="bg-[var(--retro-navy)] p-3 flex items-center justify-between border-b-4 border-[var(--retro-navy)] relative">
           <div className="flex items-center gap-3">
             <div className="w-6 h-6 bg-[var(--retro-yellow)] flex items-center justify-center border-2 border-[var(--retro-navy)]">
-              <Terminal className="w-4 h-4 text-[var(--retro-navy)]" />
+              <UserIcon className="w-4 h-4 text-[var(--retro-navy)]" />
             </div>
-            <span className="pixel-font text-white text-xs tracking-widest hidden md:inline">WIZARD_IDENTITY_SHEET_V1.0</span>
-            <span className="pixel-font text-white text-xs tracking-widest md:hidden">WIZARD_SHEET</span>
+            <span className="pixel-font text-white text-xs tracking-widest hidden md:inline">SYSTEM://USER_PROFILE_MANAGER</span>
+            <span className="pixel-font text-white text-xs tracking-widest md:hidden">USER_PROFILE</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 border-2 border-white/30 flex items-center justify-center cursor-not-allowed opacity-50">
-              <div className="w-3 h-0.5 bg-white/30" />
-            </div>
-            <div className="w-6 h-6 border-2 border-white/30 flex items-center justify-center cursor-not-allowed opacity-50">
-              <div className="w-3 h-3 border-2 border-white/30" />
-            </div>
             <button onClick={() => isEditing ? setIsEditing(false) : null} className="w-6 h-6 bg-[var(--retro-red)] flex items-center justify-center border-2 border-[var(--retro-navy)] hover:bg-red-400 transition-colors">
               <X className="w-4 h-4 text-white" />
             </button>
           </div>
         </div>
 
-        <div className="p-1 bg-[var(--retro-yellow)] h-1 w-full animate-pulse" />
+        <div className="p-1 bg-[var(--retro-yellow)] h-1 w-full" />
 
         {!isEditing ? (
-          /* VIEW MODE */
-          <div className="flex flex-col lg:flex-row divide-y-4 lg:divide-y-0 lg:divide-x-4 divide-[var(--retro-navy)] bg-white min-h-[600px]">
+          /* VIEW MODE - CLEAN & PROFESSIONAL */
+          <div className="flex flex-col lg:flex-row divide-y-4 lg:divide-y-0 lg:divide-x-4 divide-[var(--retro-navy)] bg-white min-h-[500px]">
 
-            {/* Left Column: Personality & Avatar */}
+            {/* Left Column: Avatar & Basic Info */}
             <div className="lg:w-80 flex-shrink-0 p-8 flex flex-col items-center bg-[#fdfdfd]">
-              <div className="relative mb-8 group">
+              <div className="relative mb-6">
                 <div className="w-48 h-48 border-4 border-[var(--retro-navy)] bg-[var(--retro-blue)]/10 shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] relative overflow-hidden">
                   {profile.avatarUrl ? (
-                    <Image src={profile.avatarUrl} alt="Avatar" fill className="object-cover pixelated" />
+                    <Image
+                      src={profile.avatarUrl}
+                      alt="Profile Avatar"
+                      fill
+                      unoptimized
+                      className="object-cover pixelated"
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <PixelIcon name="smiley" size={80} className="text-[var(--retro-navy)] opacity-40 p-10" />
+                      <PixelIcon name="smiley" size={80} className="text-[var(--retro-navy)] opacity-30 p-10" />
                     </div>
                   )}
-                  {/* Decorative Scanlines */}
-                  <div className="absolute inset-0 pointer-events-none opacity-10 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,3px_100%]" />
-                </div>
-                {/* Level Badge */}
-                <div className="absolute -bottom-4 -right-4 bg-[var(--retro-yellow)] border-4 border-[var(--retro-navy)] px-4 py-2 shadow-lg">
-                  <div className="pixel-font text-xs text-[var(--retro-navy)]">WIZARD</div>
-                  <div className="pixel-font text-lg text-[var(--retro-navy)] font-bold">LVL99</div>
                 </div>
               </div>
 
-              <div className="w-full space-y-6">
-                <div className="bg-[var(--retro-navy)] text-white p-3 border-2 border-[var(--retro-navy)] text-center relative">
-                  <div className="pixel-font text-[10px] mb-1">SOCIAL_STATUS</div>
+              <div className="w-full space-y-4">
+                <div className="p-3 border-2 border-[var(--retro-navy)] bg-[#f9f9f9] text-center">
+                  <div className="pixel-font text-[10px] text-gray-500 mb-1">VISIBILITY_LEVEL</div>
                   <div className="flex items-center justify-center gap-2">
                     <visibility.icon className={`w-4 h-4 ${visibility.color}`} />
-                    <span className="pixel-font-body text-base uppercase">{visibility.label}</span>
-                  </div>
-                  <div className="absolute -top-1 -left-1 w-2 h-2 bg-[var(--retro-red)]" />
-                  <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-[var(--retro-red)]" />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex justify-between items-end mb-1">
-                    <span className="pixel-font text-[10px] text-[var(--retro-navy)]">SOCIAL_ENERGY</span>
-                    <span className="pixel-font text-[10px] text-[var(--retro-navy)]">MAX_HP</span>
-                  </div>
-                  <div className="h-6 w-full border-2 border-[var(--retro-navy)] p-1 bg-white shadow-inner">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: profile.bio ? '100%' : '30%' }}
-                      className="h-full bg-[var(--retro-pink)] border-b-2 border-pink-600 relative overflow-hidden"
-                    >
-                      <div className="absolute inset-0 bg-white/20 animate-[move-right_3s_linear_infinite]" style={{ backgroundImage: 'linear-gradient(45deg, transparent 25%, rgba(255,255,255,0.3) 25%, rgba(255,255,255,0.3) 50%, transparent 50%, transparent 75%, rgba(255,255,255,0.3) 75%)', backgroundSize: '20px 20px' }} />
-                    </motion.div>
+                    <span className="pixel-font-body text-base uppercase font-bold text-[var(--retro-navy)]">{visibility.label}</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="border-2 border-[var(--retro-navy)] p-2 text-center bg-[var(--retro-blue)]/10 hover:bg-[var(--retro-blue)]/20 transition-colors">
-                    <div className="pixel-font text-[8px] opacity-60">STR</div>
-                    <div className="pixel-font text-base">{profile.firstName.length + profile.lastName.length}</div>
-                  </div>
-                  <div className="border-2 border-[var(--retro-navy)] p-2 text-center bg-[var(--retro-yellow)]/10 hover:bg-[var(--retro-yellow)]/20 transition-colors">
-                    <div className="pixel-font text-[8px] opacity-60">INT</div>
-                    <div className="pixel-font text-base">{profile.major ? '99' : '??'}</div>
+                <div className="p-3 border-2 border-[var(--retro-navy)] bg-[#f9f9f9]">
+                  <div className="pixel-font text-[10px] text-gray-500 mb-2">IDENTIFICATION</div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="pixel-font text-[8px] opacity-60">GENDER</span>
+                      <span className="pixel-font-body text-xs font-bold uppercase">{profile.gender || 'NONE'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="pixel-font text-[8px] opacity-60">SEEKING</span>
+                      <span className="pixel-font-body text-xs font-bold uppercase">{profile.genderPreference}</span>
+                    </div>
                   </div>
                 </div>
 
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="w-full bg-[var(--retro-navy)] text-white p-4 border-b-8 border-[var(--retro-navy)] border-t-0 border-x-0 active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center gap-3"
+                  className="w-full bg-[var(--retro-navy)] text-white p-4 border-b-4 border-black active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-3"
                 >
-                  <Edit2 className="w-5 h-5 text-[var(--retro-yellow)]" />
-                  <span className="pixel-font text-sm uppercase">EDIT_WIZARD</span>
+                  <Edit2 className="w-4 h-4 text-[var(--retro-yellow)]" />
+                  <span className="pixel-font text-sm uppercase">EDIT_PROFILE</span>
                 </button>
               </div>
             </div>
 
-            {/* Right Column: Character Lore & Stats */}
-            <div className="flex-1 p-8 md:p-12 space-y-10 group overflow-y-auto">
-
-              {/* Header: Name */}
-              <div className="space-y-4 text-center md:text-left">
-                <div className="inline-block px-3 py-1 bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)] mb-2">
-                  <span className="pixel-font text-[10px] text-[var(--retro-navy)]">PROFILE_ENTRY_LATEST</span>
-                </div>
-                <h1 className="pixel-font text-3xl md:text-6xl text-[var(--retro-navy)] leading-[1.1] uppercase tracking-tighter">
+            {/* Right Column: Content */}
+            <div className="flex-1 p-8 md:p-12 space-y-8 overflow-y-auto">
+              {/* Header */}
+              <div className="space-y-2">
+                <h1 className="pixel-font text-4xl md:text-6xl text-[var(--retro-navy)] uppercase tracking-tighter">
                   {profile.firstName} <span className="text-[var(--retro-pink)]">{profile.lastName}</span>
                 </h1>
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
-                  <div className="flex items-center gap-2 px-3 py-1 border-2 border-[var(--retro-navy)] bg-[var(--retro-blue)]/10">
-                    <Book className="w-4 h-4 text-[var(--retro-navy)]" />
-                    <span className="pixel-font-body text-lg font-bold uppercase">{profile.major || 'UNDECLARED'}</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-1 border-2 border-[var(--retro-navy)] bg-[var(--retro-yellow)]/10">
-                    <Star className="w-4 h-4 text-[var(--retro-navy)]" />
-                    <span className="pixel-font-body text-lg font-bold uppercase">{profile.year || 'UNKNOWN_LEVEL'}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bio: Character Lore */}
-              <div className="relative pt-8 p-6 border-4 border-[var(--retro-navy)] bg-white shadow-[8px_8px_0_0_var(--retro-blue)] group-hover:shadow-[8px_8px_0_0_var(--retro-pink)] transition-all">
-                <div className="absolute -top-6 left-6 px-4 py-2 bg-white border-4 border-[var(--retro-navy)] shadow-[4px_4px_0_0_var(--retro-navy)]">
-                  <span className="pixel-font text-xs text-[var(--retro-navy)] flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-[var(--retro-yellow)] fill-[var(--retro-yellow)]" />
-                    CHARACTER_LORE
+                <div className="flex flex-wrap gap-3">
+                  <span className="px-3 py-1 bg-[var(--retro-blue)]/10 border-2 border-[var(--retro-navy)] pixel-font text-[10px] text-[var(--retro-navy)]">
+                    {profile.major || 'UNDECLARED'}
+                  </span>
+                  <span className="px-3 py-1 bg-[var(--retro-yellow)]/20 border-2 border-[var(--retro-navy)] pixel-font text-[10px] text-[var(--retro-navy)]">
+                    {profile.year || 'UNKNOWN_YEAR'}
                   </span>
                 </div>
-                <div className="absolute top-2 right-2 flex gap-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[var(--retro-navy)] opacity-20" />
-                  <div className="w-1.5 h-1.5 rounded-full bg-[var(--retro-navy)] opacity-40" />
-                  <div className="w-1.5 h-1.5 rounded-full bg-[var(--retro-navy)] opacity-60" />
+              </div>
+
+              {/* Bio */}
+              <div className="p-6 border-4 border-[var(--retro-navy)] bg-white relative">
+                <div className="absolute -top-3 left-4 px-2 bg-white pixel-font text-[10px] text-[var(--retro-navy)] font-bold">
+                  BIOGRAPHY
                 </div>
-                <p className="pixel-font-body text-xl md:text-2xl text-[var(--retro-navy)] leading-relaxed italic opacity-90 first-letter:text-5xl first-letter:font-bold first-letter:mr-1 first-letter:text-[var(--retro-pink)]">
-                  {profile.bio || "No backstory has been written for this wizard. Legend has it they are currently on a quest to update their profile."}
+                <p className="pixel-font-body text-lg md:text-xl text-[var(--retro-navy)] leading-relaxed italic opacity-90">
+                  {profile.bio || "No biography provided."}
                 </p>
-                <div className="mt-6 flex justify-end">
-                  <div className="bg-[var(--retro-navy)] w-12 h-1 animate-pulse" />
-                </div>
               </div>
 
-              {/* Stats Grid: Attributes & Equipment */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                {/* Contact Attributes */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Info className="w-4 h-4 text-[var(--retro-pink)]" />
-                    <span className="pixel-font text-xs text-[var(--retro-navy)] opacity-70">CONTACT_LINKS</span>
+              {/* Contact Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 border-2 border-[var(--retro-navy)] bg-[#f9f9f9] flex items-center gap-4">
+                  <div className="w-10 h-10 border-2 border-[var(--retro-navy)] flex items-center justify-center bg-white">
+                    <Mail className="w-5 h-5 text-[var(--retro-navy)]" />
                   </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 border-2 border-[var(--retro-navy)] border-dashed hover:border-solid hover:bg-[var(--retro-yellow)]/5 transition-all group/stat">
-                      <div className="w-10 h-10 bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)] flex items-center justify-center flex-shrink-0 group-hover/stat:rotate-6 transition-transform">
-                        <Mail className="w-5 h-5 text-[var(--retro-navy)]" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="pixel-font text-[8px] opacity-60 leading-none mb-1 uppercase tracking-widest">TRANSMISSION_ID</div>
-                        <div className="pixel-font-body text-base font-bold truncate">{profile.email}</div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 p-3 border-2 border-[var(--retro-navy)] border-dashed hover:border-solid hover:bg-[var(--retro-pink)]/5 transition-all group/stat">
-                      <div className="w-10 h-10 bg-[var(--retro-pink)] border-2 border-[var(--retro-navy)] flex items-center justify-center flex-shrink-0 group-hover/stat:rotate-6 transition-transform">
-                        <Instagram className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="pixel-font text-[8px] opacity-60 leading-none mb-1 uppercase tracking-widest">SOCIAL_HANDLE</div>
-                        <div className="pixel-font-body text-base font-bold truncate">@{profile.instagram || 'NONE'}</div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 p-3 border-2 border-[var(--retro-navy)] border-dashed hover:border-solid hover:bg-[var(--retro-blue)]/5 transition-all group/stat">
-                      <div className="w-10 h-10 bg-[var(--retro-blue)] border-2 border-[var(--retro-navy)] flex items-center justify-center flex-shrink-0 group-hover/stat:rotate-6 transition-transform">
-                        <Phone className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="pixel-font text-[8px] opacity-60 leading-none mb-1 uppercase tracking-widest">VOICE_CHANNEL</div>
-                        <div className="pixel-font-body text-base font-bold truncate">{profile.phone || 'DISCONNECTED'}</div>
-                      </div>
-                    </div>
+                  <div className="min-w-0">
+                    <div className="pixel-font text-[8px] opacity-40">EMAIL</div>
+                    <div className="pixel-font-body text-sm font-bold truncate">{profile.email}</div>
                   </div>
                 </div>
 
-                {/* Preferences */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Layout className="w-4 h-4 text-[var(--retro-blue)]" />
-                    <span className="pixel-font text-xs text-[var(--retro-navy)] opacity-70">WIZARD_PREFS</span>
+                <div className="p-4 border-2 border-[var(--retro-navy)] bg-[#f9f9f9] flex items-center gap-4">
+                  <div className="w-10 h-10 border-2 border-[var(--retro-navy)] flex items-center justify-center bg-white">
+                    <Instagram className="w-5 h-5 text-[var(--retro-pink)]" />
                   </div>
-                  <div className="grid grid-cols-1 gap-3">
-                    <div className="p-4 border-2 border-[var(--retro-navy)] bg-[#f9f9f9] relative">
-                      <div className="pixel-font text-[8px] opacity-60 mb-2">IDENTIFIES_AS</div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 border-2 border-[var(--retro-navy)] bg-[var(--retro-pink)]" />
-                        <span className="pixel-font-body text-lg font-bold uppercase">{profile.gender || 'UNDEFINED'}</span>
-                      </div>
-                    </div>
-                    <div className="p-4 border-2 border-[var(--retro-navy)] bg-[#f9f9f9] relative">
-                      <div className="pixel-font text-[8px] opacity-60 mb-2">SEEKING_ALIGNMENT</div>
-                      <div className="flex items-center gap-3">
-                        <Heart className="w-5 h-5 text-[var(--retro-red)] fill-[var(--retro-red)]" />
-                        <span className="pixel-font-body text-lg font-bold uppercase">{profile.genderPreference === 'both' ? 'ANYONE' : profile.genderPreference}</span>
-                      </div>
-                    </div>
-                    <div className="p-4 border-2 border-[var(--retro-navy)] bg-[#f9f9f9] relative overflow-hidden">
-                      <div className="pixel-font text-[8px] opacity-60 mb-2">PREFERRED_CONTACT</div>
-                      <span className="pixel-font text-xs text-[var(--retro-navy)] bg-[var(--retro-yellow)] px-2 py-1 border border-[var(--retro-navy)]">{profile.contactPreference}</span>
-                      <Share2 className="absolute -bottom-2 -right-2 w-12 h-12 text-[var(--retro-navy)] opacity-5 rotate-12" />
-                    </div>
+                  <div className="min-w-0">
+                    <div className="pixel-font text-[8px] opacity-40">INSTAGRAM</div>
+                    <div className="pixel-font-body text-sm font-bold truncate">@{profile.instagram || 'NOT_SET'}</div>
                   </div>
                 </div>
 
-              </div>
+                <div className="p-4 border-2 border-[var(--retro-navy)] bg-[#f9f9f9] flex items-center gap-4">
+                  <div className="w-10 h-10 border-2 border-[var(--retro-navy)] flex items-center justify-center bg-white">
+                    <Phone className="w-5 h-5 text-blue-500" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="pixel-font text-[8px] opacity-40">PHONE</div>
+                    <div className="pixel-font-body text-sm font-bold truncate">{profile.phone || 'NOT_SET'}</div>
+                  </div>
+                </div>
 
-              {/* Decorative Footer */}
-              <div className="pt-6 border-t-2 border-dashed border-[var(--retro-navy)]/30 flex justify-between items-center opacity-40">
-                <span className="pixel-font text-[8px]">ID: {profile.email.split('@')[0].toUpperCase()}</span>
-                <span className="pixel-font text-[8px]">© 2026 WIZARD_CONNECT_CORP</span>
+                <div className="p-4 border-2 border-[var(--retro-navy)] bg-[#f9f9f9] flex items-center gap-4">
+                  <div className="w-10 h-10 border-2 border-[var(--retro-navy)] flex items-center justify-center bg-white">
+                    <Info className="w-5 h-5 text-gray-500" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="pixel-font text-[8px] opacity-40">PREFERENCE</div>
+                    <div className="pixel-font-body text-sm font-bold truncate uppercase">{profile.contactPreference}</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         ) : (
-          /* EDIT MODE */
-          <div className="flex flex-col lg:flex-row divide-y-4 lg:divide-y-0 lg:divide-x-4 divide-[var(--retro-navy)] bg-white min-h-[600px] animate-in fade-in duration-300">
-            {/* Left: Avatar Picker */}
-            <div className="lg:w-80 p-8 flex flex-col items-center gap-6 bg-[#fdfdfd]">
+          /* ENHANCED EDIT MODE - PROFESSIONAL & ORGANIZED */
+          <div className="flex flex-col lg:flex-row divide-y-4 lg:divide-y-0 lg:divide-x-4 divide-[var(--retro-navy)] bg-[#f5f5f5] min-h-[600px]">
+            {/* Left: Avatar Management */}
+            <div className="lg:w-80 p-8 flex flex-col items-center gap-6 bg-white">
               <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                <div className="w-48 h-48 border-4 border-[var(--retro-navy)] bg-[var(--retro-blue)]/20 relative overflow-hidden">
+                <div className="w-48 h-48 border-4 border-[var(--retro-navy)] bg-[var(--retro-blue)]/10 relative overflow-hidden">
                   {profile.avatarUrl ? (
-                    <Image src={profile.avatarUrl} alt="Preview" fill className="object-cover pixelated" />
+                    <Image
+                      src={profile.avatarUrl}
+                      alt="Preview"
+                      fill
+                      unoptimized
+                      className="object-cover pixelated"
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center p-12">
-                      <PixelIcon name="smiley" size={60} className="text-[var(--retro-navy)] opacity-40" />
+                      <PixelIcon name="smiley" size={60} className="text-[var(--retro-navy)] opacity-20" />
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
                     <Camera className="w-8 h-8 text-white" />
+                    <span className="text-white pixel-font text-[8px]">CHANGE_IMAGE</span>
                   </div>
-                </div>
-                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)] px-4 py-1 text-[8px] pixel-font whitespace-nowrap shadow-md">
-                  REPLACE_MODULE
                 </div>
               </div>
               <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
 
-              <div className="w-full p-4 border-2 border-[var(--retro-navy)] bg-[var(--retro-pink)]/10">
-                <div className="flex items-center gap-2 mb-4">
-                  <Settings className="w-4 h-4 text-[var(--retro-navy)]" />
-                  <span className="pixel-font text-[10px] text-[var(--retro-navy)] font-bold">SYSTEM_SECURITY</span>
+              <div className="w-full space-y-4">
+                <div className="p-4 border-4 border-[var(--retro-navy)] bg-white shadow-[4px_4px_0_0_var(--retro-navy)]">
+                  <div className="pixel-font text-[10px] text-gray-400 mb-4 border-b pb-2 tracking-widest flex items-center gap-2">
+                    <Shield className="w-3 h-3" /> PRIVACY_SETTINGS
+                  </div>
+                  <div className="space-y-2">
+                    {[
+                      { val: 'public', label: 'PUBLIC_PROFILE', icon: Eye, color: 'text-green-600' },
+                      { val: 'matches_only', label: 'MATCHES_ONLY', icon: Shield, color: 'text-blue-600' },
+                      { val: 'private', label: 'PRIVATE_MODE', icon: EyeOff, color: 'text-gray-500' }
+                    ].map((opt) => (
+                      <button
+                        key={opt.val}
+                        onClick={() => setProfile({ ...profile, visibility: opt.val as "public" | "matches_only" | "private" })}
+                        className={`w-full p-2 border-2 flex items-center gap-3 transition-all ${profile.visibility === opt.val ? 'bg-[var(--retro-yellow)]/20 border-[var(--retro-navy)]' : 'bg-white border-transparent grayscale opacity-50'}`}
+                      >
+                        <opt.icon className={`w-3 h-3 ${opt.color}`} />
+                        <span className="pixel-font text-[8px] font-bold">{opt.label}</span>
+                        {profile.visibility === opt.val && <div className="ml-auto w-2 h-2 bg-[var(--retro-navy)] rounded-full" />}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="space-y-3">
-                  {[
-                    { val: 'public', label: 'PUBLIC', icon: Eye, color: 'text-green-600' },
-                    { val: 'matches_only', label: 'GUILD', icon: Shield, color: 'text-blue-600' },
-                    { val: 'private', label: 'OFFLINE', icon: EyeOff, color: 'text-gray-500' }
-                  ].map((opt) => (
-                    <button
-                      key={opt.val}
-                      onClick={() => setProfile({ ...profile, visibility: opt.val as "public" | "matches_only" | "private" })}
-                      className={`w-full p-3 border-2 flex items-center gap-3 transition-all ${profile.visibility === opt.val ? 'bg-[var(--retro-yellow)] border-[var(--retro-navy)] shadow-[4px_4px_0_0_rgba(0,0,0,0.1)]' : 'bg-white border-[var(--retro-navy)] opacity-60 hover:opacity-100'}`}
-                    >
-                      <opt.icon className={`w-4 h-4 ${opt.color}`} />
-                      <span className="pixel-font text-[10px]">{opt.label}</span>
-                      {profile.visibility === opt.val && <Check className="w-3 h-3 ml-auto text-[var(--retro-navy)]" />}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="text-center">
-                <p className="pixel-font-body text-xs text-gray-500 max-w-[200px]">Ensure your alignment settings are correct before deployment.</p>
               </div>
             </div>
 
-            {/* Right: Input Fields */}
-            <div className="flex-1 p-8 md:p-12 space-y-8 overflow-y-auto">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-10 h-10 bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)] flex items-center justify-center">
+            {/* Right: Detailed Fields */}
+            <div className="flex-1 p-8 md:p-12 space-y-10 overflow-y-auto bg-white">
+              <div className="flex items-center gap-4 pb-4 border-b-4 border-[var(--retro-navy)]/10">
+                <div className="w-12 h-12 bg-[var(--retro-yellow)] border-4 border-[var(--retro-navy)] flex items-center justify-center">
                   <Settings className="w-6 h-6 text-[var(--retro-navy)]" />
                 </div>
-                <h2 className="pixel-font text-xl text-[var(--retro-navy)] uppercase tracking-tight">Configuration_Manager</h2>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-1.5">
-                  <label className="pixel-font text-[10px] text-[var(--retro-navy)] ml-1">IDENTITY_PREFIX</label>
-                  <input
-                    type="text"
-                    value={profile.firstName}
-                    onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
-                    className="pixel-input w-full h-12 uppercase"
-                    placeholder="FIRST_NAME"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="pixel-font text-[10px] text-[var(--retro-navy)] ml-1">IDENTITY_SUFFIX</label>
-                  <input
-                    type="text"
-                    value={profile.lastName}
-                    onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
-                    className="pixel-input w-full h-12 uppercase"
-                    placeholder="LAST_NAME"
-                  />
+                <div>
+                  <h2 className="pixel-font text-2xl text-[var(--retro-navy)] uppercase">ACCOUNT_CONFIGURATION</h2>
+                  <p className="pixel-font text-[8px] text-gray-400 uppercase tracking-widest">v2.0_PROFILE_EDITOR_STABLE</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-1.5">
-                  <label className="pixel-font text-[10px] text-[var(--retro-navy)] ml-1">ACADEMIC_LEVEL</label>
-                  <CustomSelect
-                    value={profile.year}
-                    onChange={(val) => setProfile({ ...profile, year: val })}
-                    options={YEAR_OPTIONS}
-                    placeholder="SELECT_YEAR"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="pixel-font text-[10px] text-[var(--retro-navy)] ml-1">CORE_MAJOR</label>
-                  <div className="relative">
+              {/* Form Groups */}
+              <div className="space-y-8">
+                {/* Personal Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="pixel-font text-[10px] text-gray-400 ml-1">FIRST_NAME_ALPHA</label>
                     <input
-                      list="majors"
                       type="text"
-                      value={profile.major}
-                      onChange={(e) => setProfile({ ...profile, major: e.target.value })}
-                      className="pixel-input w-full h-12 uppercase"
-                      placeholder="SELECT_MAJOR"
+                      value={profile.firstName}
+                      onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
+                      className="pixel-input w-full h-12 pl-4 bg-white focus:bg-[var(--retro-yellow)]/5 transition-colors"
+                      placeholder="ENTER_FIRST_NAME"
                     />
-                    <datalist id="majors">
-                      {MAJOR_OPTIONS.map(m => <option key={m} value={m} />)}
-                    </datalist>
-                    <Book className="absolute right-3 top-3.5 w-5 h-5 text-[var(--retro-navy)] opacity-30 pointer-events-none" />
                   </div>
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center px-1">
-                  <label className="pixel-font text-[10px] text-[var(--retro-navy)]">CHARACTER_BACKSTORY</label>
-                  <span className="pixel-font text-[8px] opacity-40">{profile.bio.length}/500</span>
-                </div>
-                <textarea
-                  value={profile.bio}
-                  onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                  className="pixel-input w-full h-32 resize-none pt-4"
-                  maxLength={500}
-                  placeholder="ENTER_YOUR_TALE_HERE..."
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-1.5">
-                  <label className="pixel-font text-[10px] text-[var(--retro-navy)] ml-1">SOCIAL_HUB</label>
-                  <div className="relative">
-                    <Instagram className="absolute left-3 top-3.5 w-5 h-5 text-[var(--retro-navy)] opacity-30" />
+                  <div className="space-y-2">
+                    <label className="pixel-font text-[10px] text-gray-400 ml-1">LAST_NAME_BETA</label>
                     <input
                       type="text"
-                      value={profile.instagram}
-                      onChange={(e) => setProfile({ ...profile, instagram: e.target.value })}
-                      className="pixel-input w-full h-1 pl-10"
-                      placeholder="@USERNAME"
+                      value={profile.lastName}
+                      onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
+                      className="pixel-input w-full h-12 pl-4 focus:bg-[var(--retro-yellow)]/5 transition-colors"
+                      placeholder="ENTER_LAST_NAME"
                     />
                   </div>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="pixel-font text-[10px] text-[var(--retro-navy)] ml-1">VOICE_CHANNEL</label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-3.5 w-5 h-5 text-[var(--retro-navy)] opacity-30" />
-                    <input
-                      type="text"
-                      value={profile.phone}
-                      onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                      className="pixel-input w-full h-12 pl-10"
-                      placeholder="+63 000 000 0000"
+
+                {/* Academic & Bio */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="pixel-font text-[10px] text-gray-400 ml-1">ACADEMIC_LEVEL</label>
+                    <CustomSelect
+                      value={profile.year}
+                      onChange={(val) => setProfile({ ...profile, year: val })}
+                      options={YEAR_OPTIONS}
+                      placeholder="CHOOSE_LEVEL"
                     />
                   </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t-2 border-dashed border-[var(--retro-navy)]/20">
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="w-full bg-[var(--retro-yellow)] text-[var(--retro-navy)] h-14 border-4 border-[var(--retro-navy)] shadow-[6px_6px_0_0_var(--retro-navy)] hover:shadow-[2px_2px_0_0_var(--retro-navy)] hover:translate-x-1 hover:translate-y-1 active:shadow-none active:translate-x-1.5 active:translate-y-1.5 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-                >
-                  {isSaving ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-[var(--retro-navy)] animate-bounce" />
-                      <div className="w-2 h-2 bg-[var(--retro-navy)] animate-bounce [animation-delay:0.2s]" />
-                      <div className="w-2 h-2 bg-[var(--retro-navy)] animate-bounce [animation-delay:0.4s]" />
+                  <div className="space-y-2">
+                    <label className="pixel-font text-[10px] text-gray-400 ml-1">CORE_MAJOR_ID</label>
+                    <div className="relative">
+                      <input
+                        list="majors"
+                        type="text"
+                        value={profile.major}
+                        onChange={(e) => setProfile({ ...profile, major: e.target.value })}
+                        className="pixel-input w-full h-12 pl-4 uppercase"
+                        placeholder="SEARCH_MAJORS..."
+                      />
+                      <datalist id="majors">
+                        {MAJOR_OPTIONS.map(m => <option key={m} value={m} />)}
+                      </datalist>
+                      <Book className="absolute right-3 top-3.5 w-5 h-5 text-[var(--retro-navy)] opacity-20" />
                     </div>
-                  ) : (
-                    <>
-                      <Save className="w-5 h-5" />
-                      <span className="pixel-font text-sm uppercase">DEPLOY_PROFILE</span>
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={() => setIsEditing(false)}
-                  className="w-full bg-white text-[var(--retro-navy)] h-14 border-4 border-[var(--retro-navy)] shadow-[6px_6px_0_0_#999] hover:shadow-[2px_2px_0_0_#999] hover:translate-x-1 hover:translate-y-1 active:shadow-none active:translate-x-1.5 active:translate-y-1.5 transition-all flex items-center justify-center uppercase pixel-font text-sm"
-                >
-                  DISCARD_CHANGES
-                </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center px-1">
+                    <label className="pixel-font text-[10px] text-gray-400 uppercase tracking-widest">BIOGRAPHICAL_DATA_BUFFER</label>
+                    <span className="pixel-font text-[8px] text-gray-400">{profile.bio.length}/500_CHARS</span>
+                  </div>
+                  <textarea
+                    value={profile.bio}
+                    onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                    className="pixel-input w-full h-32 p-4 resize-none leading-relaxed"
+                    maxLength={500}
+                    placeholder="DESCRIBE_YOURSELF_FOR_OTHER_USERS..."
+                  />
+                </div>
+
+                {/* Social & Contact */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-[#f9f9f9] border-4 border-dashed border-[var(--retro-navy)]/10">
+                  <div className="space-y-2">
+                    <label className="pixel-font text-[10px] text-gray-400 ml-1">SOCIAL_HUB_HANDLE</label>
+                    <div className="relative">
+                      <div className="absolute left-0 top-0 w-12 h-12 flex items-center justify-center border-r-2 border-[var(--retro-navy)]/20">
+                        <Instagram className="w-5 h-5 text-[var(--retro-pink)]" />
+                      </div>
+                      <input
+                        type="text"
+                        value={profile.instagram}
+                        onChange={(e) => setProfile({ ...profile, instagram: e.target.value })}
+                        className="pixel-input w-full h-12 pl-14"
+                        placeholder="@USERNAME"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="pixel-font text-[10px] text-gray-400 ml-1">VOICE_COMMS_LINK</label>
+                    <div className="relative">
+                      <div className="absolute left-0 top-0 w-12 h-12 flex items-center justify-center border-r-2 border-[var(--retro-navy)]/20">
+                        <Phone className="w-5 h-5 text-blue-500" />
+                      </div>
+                      <input
+                        type="text"
+                        value={profile.phone}
+                        onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                        className="pixel-input w-full h-12 pl-14"
+                        placeholder="PHONE_NUMBER"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2 space-y-2">
+                    <label className="pixel-font text-[10px] text-gray-400 ml-1">PREFERRED_TRANSMISSION_METHOD</label>
+                    <div className="flex gap-2">
+                      {['email', 'instagram', 'phone'].map((pref) => (
+                        <button
+                          key={pref}
+                          onClick={() => setProfile({ ...profile, contactPreference: pref as 'email' | 'phone' | 'instagram' })}
+                          className={`flex-1 h-12 border-2 pixel-font text-[10px] uppercase font-bold transition-all ${profile.contactPreference === pref ? 'bg-[var(--retro-navy)] text-white border-[var(--retro-navy)]' : 'bg-white border-[var(--retro-navy)]/20 text-gray-400'}`}
+                        >
+                          {pref}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-col md:flex-row gap-4 pt-6">
+                  <button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="flex-[2] bg-[var(--retro-yellow)] text-[var(--retro-navy)] h-16 border-4 border-black shadow-[8px_8px_0_0_black] hover:shadow-[2px_2px_0_0_black] hover:translate-x-1 hover:translate-y-1 active:shadow-none active:translate-x-2 active:translate-y-2 transition-all flex items-center justify-center gap-4 disabled:opacity-50"
+                  >
+                    {isSaving ? (
+                      <div className="pixel-spinner-sm" />
+                    ) : (
+                      <>
+                        <Save className="w-6 h-6" />
+                        <span className="pixel-font text-lg uppercase font-bold">SAVE_ALL_CHANGES</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="flex-1 bg-white text-gray-400 h-16 border-4 border-gray-200 hover:border-[var(--retro-red)] hover:text-[var(--retro-red)] transition-all uppercase pixel-font text-sm font-bold"
+                  >
+                    DISCARD
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         )}
       </motion.div>
 
-      {/* Background Decorative Elements */}
+      {/* Decorative Elements */}
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 opacity-5">
         <div className="absolute top-10 right-10 w-96 h-96 border-8 border-[var(--retro-navy)] rotate-12" />
         <div className="absolute bottom-20 left-10 w-64 h-64 border-8 border-[var(--retro-pink)] -rotate-12" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[url('https://www.transparenttextures.com/patterns/p6.png')] opacity-20" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(var(--retro-navy)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
       </div>
 
       <style jsx global>{`
-        @keyframes move-right {
-          from { background-position: 0 0; }
-          to { background-position: 40px 0; }
+        .pixel-spinner-sm {
+           width: 24px;
+           height: 24px;
+           border: 4px solid var(--retro-navy);
+           border-top-color: transparent;
+           animation: spin 1s linear infinite;
         }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f1f1;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: var(--retro-navy);
+        @keyframes spin {
+           to { transform: rotate(360deg); }
         }
         .pixelated {
           image-rendering: pixelated;
+        }
+        .pixel-input:focus {
+          outline: none;
+          border-color: var(--retro-navy);
+          box-shadow: 4px 4px 0 0 var(--retro-navy);
         }
       `}</style>
     </div>
