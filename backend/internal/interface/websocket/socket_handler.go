@@ -7,11 +7,16 @@ import (
 	"log"
 	"net/http"
 
+	"strings"
 	"wizard-connect/internal/domain/entities"
 	"wizard-connect/internal/infrastructure/database"
 
 	"github.com/gin-gonic/gin"
 	socketio "github.com/googollee/go-socket.io"
+	"github.com/googollee/go-socket.io/engineio"
+	"github.com/googollee/go-socket.io/engineio/transport"
+	"github.com/googollee/go-socket.io/engineio/transport/polling"
+	"github.com/googollee/go-socket.io/engineio/transport/websocket"
 )
 
 type SocketHandler struct {
@@ -34,7 +39,19 @@ func NewSocketHandler(
 	messageRepo *database.MessageRepository,
 	userRepo *database.UserRepository,
 ) (*SocketHandler, error) {
-	server := socketio.NewServer(nil)
+	// Configure engine.io options
+	opts := &engineio.Options{
+		Transports: []transport.Transport{
+			&polling.Transport{
+				CheckOrigin: func(r *http.Request) bool { return true },
+			},
+			&websocket.Transport{
+				CheckOrigin: func(r *http.Request) bool { return true },
+			},
+		},
+	}
+
+	server := socketio.NewServer(opts)
 
 	handler := &SocketHandler{
 		Server:           server,
@@ -114,6 +131,9 @@ func (h *SocketHandler) Handler() gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusNoContent)
 			return
 		}
+
+		// Strip the /api/v1 prefix so the server sees /socket.io/...
+		c.Request.URL.Path = strings.TrimPrefix(c.Request.URL.Path, "/api/v1")
 
 		h.Server.ServeHTTP(c.Writer, c.Request)
 	}

@@ -53,7 +53,7 @@ export default function MessagesPage() {
 
     const newSocket = io(apiURL, {
       path: socketPath,
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'], // Allow polling as fallback
       autoConnect: true,
       reconnection: true,
     })
@@ -66,6 +66,10 @@ export default function MessagesPage() {
     newSocket.on('disconnect', () => {
       console.log('Socket.IO disconnected')
       setIsConnected(false)
+    })
+
+    newSocket.on('connect_error', (err) => {
+      console.error('Socket.IO connection error:', err)
     })
 
     newSocket.on('receive-message', (payload: any) => {
@@ -185,7 +189,12 @@ export default function MessagesPage() {
 
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedConversation || !socket || !isConnected) return
+    if (!newMessage.trim() || !selectedConversation || !socket) return
+
+    if (!isConnected) {
+      console.warn('Socket not connected, message might be delayed')
+      // Optional: show a small toast or status change
+    }
 
     const messageContent = newMessage.trim()
 
@@ -551,10 +560,15 @@ export default function MessagesPage() {
                   />
                   <button
                     onClick={handleSendMessage}
-                    disabled={!newMessage.trim() || sendingMessage}
-                    className="px-6 py-3 bg-[var(--retro-yellow)] text-black font-bold pixel-font border-4 border-[var(--retro-navy)] retro-window-shadow disabled:bg-gray-200 disabled:cursor-not-allowed hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center gap-2"
+                    disabled={!newMessage.trim() || !selectedConversation || !socket}
+                    className={`px-6 py-3 text-black font-bold pixel-font border-4 border-[var(--retro-navy)] retro-window-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center gap-2 ${!newMessage.trim() || !selectedConversation || !socket
+                      ? 'bg-gray-200 cursor-not-allowed'
+                      : isConnected
+                        ? 'bg-[var(--retro-yellow)]'
+                        : 'bg-orange-300'
+                      }`}
                   >
-                    <span>SEND</span>
+                    <span>{isConnected ? 'SEND' : 'SYNC...'}</span>
                     <ArrowRight size={16} />
                   </button>
                 </div>
