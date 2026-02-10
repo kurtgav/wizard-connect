@@ -1,23 +1,25 @@
-import { supabase } from '@/lib/supabase/supabase';
+import { supabase } from '@/lib/supabase';
 
 /**
- * Get the correct public URL for avatar images.
+ * Get's correct public URL for avatar images.
  * Handles both full URLs and Supabase Storage paths.
  * @param avatarUrl - The avatar URL from the database
-clusion
-/**
- * Get the correct public URL for avatar images.
- * Handles both full URLs and Supabase Storage paths.
- * @param avatarUrl - The avatar URL from the database
- *同比下降中也(has To try)
- *
- * @,',/storage)?responseault);):/** A quickshortcut() URL for imagres:,@brief/toggle
-/**
- * Get the correct public URL for av.
- * Handles both full URLs and Supababe Storage paths.
- * @param avatarUrl - The avatar URL from the dataCL
-caclation, /** @type*/neitlied.
-import { supabase } from '@/lib/supabase/supabase';
+ * @returns The properly formatted public URL
+ */
+export function getAvatarUrl(avatarUrl: string | null | undefined): string {
+  if (!avatarUrl) return '';
 
-/**/{avatarUrl;
+  // If it's already a full URL, return as-is
+  if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) {
+    return avatarUrl;
+  }
+
+  // If it's a Supabase Storage path, convert to public URL
+  if (avatarUrl.startsWith('/')) {
+    const { data } = supabase.storage.from('avatars').getPublicUrl(avatarUrl);
+    return data.publicUrl;
+  }
+
+  return avatarUrl;
 }
+
